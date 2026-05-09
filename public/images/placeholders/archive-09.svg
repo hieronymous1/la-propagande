@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" role="img" aria-label="Archive placeholder 09">
+  <rect width="960" height="640" fill="#090909"/>
+  <rect x="18" y="18" width="924" height="604" fill="none" stroke="#3a3a3a"/>
+  <rect x="38" y="38" width="884" height="90" fill="#121212" stroke="#242424"/>
+  <text x="60" y="95" fill="#d6d1c4" font-size="34" font-family="monospace" letter-spacing="3">ARCHIVE ENTRY // 09</text>
+  <rect x="38" y="160" width="884" height="420" fill="none" stroke="#2a2a2a" stroke-dasharray="4 6"/>
+  <text x="60" y="215" fill="#b31212" font-size="22" font-family="monospace" letter-spacing="3">STATUS: DEGRADED</text>
+  <text x="60" y="560" fill="#8c8c8c" font-size="20" font-family="monospace" letter-spacing="2">RECOVERY PLACEHOLDER</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" role="img" aria-label="Post placeholder 06">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#120909"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1600" fill="url(#g)"/>
+  <rect x="70" y="70" width="1060" height="1460" fill="none" stroke="#3a3a3a" stroke-width="2"/>
+  <text x="110" y="170" fill="#d6d1c4" font-size="52" font-family="monospace" letter-spacing="4">TRANSMISSION</text>
+  <text x="110" y="240" fill="#d11a1a" font-size="32" font-family="monospace" letter-spacing="4">CHANNEL // 06</text>
+  <text x="110" y="1490" fill="#8c8c8c" font-size="20" font-family="monospace" letter-spacing="3">ARCHIVE FEED PLACEHOLDER</text>
+</svg>

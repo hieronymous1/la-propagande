@@ -1,0 +1,678 @@
+@font-face {
+  font-family: "Army Rust";
+  src: url("/fonts/ARMY RUST.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Retro Computer";
+  src: url("/fonts/retro_computer_personal_use.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --lp-color-bg-absolute: #050505;
+  --lp-color-bg-1: #0a0a0a;
+  --lp-color-bg-2: #0a0a0a;
+  --lp-color-bg-3: #111111;
+  --lp-color-bg-4: #151515;
+
+  --lp-color-primary-900: #450909;
+  --lp-color-primary-800: #671010;
+  --lp-color-primary-700: #8e1111;
+  --lp-color-primary-600: #b31212;
+  --lp-color-primary-500: #d11a1a;
+  --lp-color-primary-400: #d11a1a;
+  --lp-color-primary-300: #d11a1a;
+  --lp-color-primary-200: #d11a1a;
+  --lp-color-primary-100: #bfb8ac;
+
+  --lp-color-text-strong: #d6d1c4;
+  --lp-color-text-main: #d6d1c4;
+  --lp-color-text-muted: #8c8c8c;
+  --lp-color-text-dim: #767676;
+  --lp-color-text-inverse: #0a0a0a;
+
+  --lp-color-border-subtle: #242424;
+  --lp-color-border-default: #3a3a3a;
+  --lp-color-border-strong: #3a3a3a;
+  --lp-color-border-accent: #b31212;
+  --lp-color-border-accent-bright: #d11a1a;
+
+  --lp-color-status-online: #768f61;
+  --lp-color-status-warning: #a86a1e;
+  --lp-color-status-offline: #6b6b6b;
+  --lp-color-status-alert: #ff4a4a;
+  --lp-color-status-locked: #6b2a2a;
+  --lp-color-accent-green: #7fae68;
+  --lp-color-accent-amber-muted: #7d5620;
+  --lp-color-active-pale: #bfb8ac;
+
+  --lp-color-overlay-red-glow: rgba(179, 18, 18, 0.16);
+  --lp-color-overlay-red-glow-strong: rgba(179, 18, 18, 0.22);
+  --lp-color-overlay-noise: rgba(255, 255, 255, 0.035);
+  --lp-color-overlay-vignette: rgba(0, 0, 0, 0.45);
+  --lp-color-overlay-scanline: rgba(255, 255, 255, 0.03);
+
+  --lp-font-display: "Army Rust", sans-serif;
+  --lp-font-ui: "Retro Computer", monospace;
+
+  --lp-font-size-2xs: 10px;
+  --lp-font-size-xs: 11px;
+  --lp-font-size-sm: 12px;
+  --lp-font-size-md: 14px;
+  --lp-font-size-lg: 16px;
+  --lp-font-size-xl: 20px;
+  --lp-font-size-2xl: 28px;
+  --lp-font-size-3xl: 40px;
+  --lp-font-size-4xl: 40px;
+  --lp-font-size-5xl: 56px;
+
+  --lp-line-height-tight: 0.94;
+  --lp-line-height-ui: 1.35;
+  --lp-line-height-body: 1.45;
+  --lp-line-height-roomy: 1.6;
+
+  --lp-letter-spacing-tight: 0.01em;
+  --lp-letter-spacing-normal: 0;
+  --lp-letter-spacing-wide: 0.02em;
+  --lp-letter-spacing-wider: 0.05em;
+  --lp-letter-spacing-ui: 0.03em;
+
+  --lp-space-0: 0;
+  --lp-space-1: 2px;
+  --lp-space-2: 4px;
+  --lp-space-3: 6px;
+  --lp-space-4: 8px;
+  --lp-space-5: 10px;
+  --lp-space-6: 12px;
+  --lp-space-7: 14px;
+  --lp-space-8: 16px;
+  --lp-space-9: 20px;
+  --lp-space-10: 24px;
+  --lp-space-11: 28px;
+  --lp-space-12: 32px;
+  --lp-space-13: 40px;
+  --lp-space-14: 48px;
+
+  --lp-radius-none: 0;
+  --lp-radius-sm: 2px;
+  --lp-radius-md: 3px;
+
+  --lp-border-1: 1px solid var(--lp-color-border-default);
+  --lp-border-1-accent: 1px solid var(--lp-color-border-accent);
+  --lp-border-1-bright: 1px solid var(--lp-color-border-accent-bright);
+
+  --lp-shadow-panel: 2px 2px 0 #050505;
+  --lp-shadow-red-soft: 0 0 12px rgba(195, 21, 21, 0.18);
+  --lp-shadow-red-medium: 0 0 18px rgba(195, 21, 21, 0.26);
+  --lp-shadow-active-glow: 0 0 0 1px #b31212, 0 0 10px rgba(179, 18, 18, 0.14);
+
+  --lp-max-width-site: 1440px;
+  --lp-max-width-content: 1280px;
+
+  --lp-z-video: 1;
+  --lp-z-noise: 2;
+  --lp-z-scanline: 3;
+  --lp-z-panel: 10;
+  --lp-z-header: 30;
+  --lp-z-overlay: 50;
+  --lp-z-boot: 80;
+
+  --lp-duration-instant: 80ms;
+  --lp-duration-fast: 140ms;
+  --lp-duration-output: 120ms;
+  --lp-duration-medium: 220ms;
+  --lp-duration-exec: 240ms;
+  --lp-duration-blink: 900ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--lp-color-bg-absolute);
+  color-scheme: dark;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: radial-gradient(circle at 20% -20%, #240606 0%, var(--lp-color-bg-1) 42%, #000 100%);
+  color: var(--lp-color-text-main);
+  font-family: var(--lp-font-ui);
+  text-rendering: geometricPrecision;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+@layer utilities {
+  .font-lp-display {
+    font-family: var(--lp-font-display);
+    letter-spacing: var(--lp-letter-spacing-wide);
+  }
+
+  .font-lp-ui {
+    font-family: var(--lp-font-ui);
+    letter-spacing: var(--lp-letter-spacing-ui);
+  }
+
+  .lp-page {
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--lp-color-bg-2) 0%, var(--lp-color-bg-absolute) 100%);
+    color: var(--lp-color-text-main);
+  }
+
+  .lp-shell {
+    margin: 0 auto;
+    width: 100%;
+    max-width: var(--lp-max-width-site);
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  .lp-panel {
+    border: var(--lp-border-1);
+    background: rgba(10, 10, 10, 0.92);
+    box-shadow: var(--lp-shadow-panel);
+    border-radius: 0;
+    animation: lp-panel-reveal-140 var(--lp-duration-fast) steps(2, end);
+  }
+
+  .lp-panel-title {
+    height: 26px;
+    border-bottom: 1px solid var(--lp-color-border-subtle);
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--lp-space-4);
+    padding: 0 var(--lp-space-4);
+  }
+
+  .lp-status-strip {
+    border: var(--lp-border-1-accent);
+    background: rgba(10, 10, 10, 0.88);
+    color: var(--lp-color-text-main);
+    font-size: var(--lp-font-size-2xs);
+    line-height: var(--lp-line-height-ui);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--lp-space-3) var(--lp-space-4);
+    border-radius: 0;
+  }
+
+  .lp-command-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--lp-space-3);
+    border: 0;
+    background: transparent;
+    color: var(--lp-color-text-main);
+    font-family: var(--lp-font-display);
+    text-transform: uppercase;
+    letter-spacing: var(--lp-letter-spacing-wide);
+    font-size: clamp(20px, 3.1vw, 38px);
+    line-height: var(--lp-line-height-tight);
+    transition: color var(--lp-duration-fast) linear, text-shadow var(--lp-duration-fast) linear,
+      transform var(--lp-duration-instant) steps(1, end);
+    cursor: pointer;
+    text-align: left;
+    padding: 0;
+    min-height: 44px;
+  }
+
+  .lp-command-link:hover,
+  .lp-command-link:focus-visible,
+  .lp-command-link[data-active='true'] {
+    color: var(--lp-color-primary-200);
+    text-shadow: var(--lp-shadow-red-medium);
+    transform: translate(1px, -1px);
+    outline: none;
+  }
+
+  .lp-command-prefix {
+    font-family: var(--lp-font-ui);
+    font-size: var(--lp-font-size-md);
+    color: var(--lp-color-primary-300);
+  }
+
+  .lp-command-cursor {
+    width: 8px;
+    height: 18px;
+    background: var(--lp-color-primary-300);
+    animation: lp-cursor 1s steps(1, end) infinite;
+  }
+
+  .lp-log {
+    font-family: var(--lp-font-ui);
+    font-size: var(--lp-font-size-xs);
+    line-height: 1.45;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--lp-color-text-muted);
+  }
+
+  .lp-command-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr;
+  }
+
+  .lp-status-blink {
+    animation: lp-status-blink-900 var(--lp-duration-blink) steps(1, end) infinite;
+  }
+
+  .lp-signal-meter {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: max-content;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .lp-signal-bar,
+  .lp-signal-noise {
+    width: 9px;
+    height: 11px;
+    border: 1px solid rgba(166, 166, 166, 0.85);
+    box-sizing: border-box;
+  }
+
+  .lp-signal-bar {
+    background: rgba(190, 190, 190, 0.85);
+    opacity: 0.38;
+    animation: lp-signal-bars-1400 1.4s steps(1, end) infinite;
+  }
+
+  .lp-signal-bar-1 {
+    animation-delay: 0ms;
+  }
+
+  .lp-signal-bar-2 {
+    animation-delay: 160ms;
+  }
+
+  .lp-signal-bar-3 {
+    animation-delay: 320ms;
+  }
+
+  .lp-signal-bar-4 {
+    animation-delay: 480ms;
+  }
+
+  .lp-signal-bar-5 {
+    animation-delay: 640ms;
+  }
+
+  .lp-signal-noise {
+    border-style: dotted;
+    background-image: repeating-linear-gradient(135deg, rgba(200, 200, 200, 0.86) 0 1px, transparent 1px 3px);
+    opacity: 0.6;
+    animation: lp-signal-noise-700 700ms steps(2, end) infinite;
+  }
+
+  .lp-command-output {
+    animation: lp-command-output-120 var(--lp-duration-output) steps(2, end);
+  }
+
+  .lp-exec-hit {
+    transition: border-color var(--lp-duration-instant) steps(1, end), box-shadow var(--lp-duration-medium) linear, transform var(--lp-duration-instant) steps(1, end);
+  }
+
+  .lp-exec-hit:active {
+    transform: translate(1px, 1px);
+    box-shadow: var(--lp-shadow-active-glow);
+  }
+
+  .lp-archive-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .lp-warning-box {
+    border: 1px solid var(--lp-color-status-warning);
+    color: var(--lp-color-status-warning);
+    background: rgba(168, 106, 30, 0.08);
+    padding: 6px 8px;
+  }
+
+  .lp-title-flicker {
+    will-change: opacity, transform;
+  }
+
+  .group:hover .lp-title-flicker,
+  .group:focus-visible .lp-title-flicker {
+    animation: lp-title-flicker-80 80ms steps(1, end) 2;
+  }
+
+  .lp-noise::after,
+  .lp-scanlines::before,
+  .lp-vignette::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .lp-noise::after {
+    z-index: var(--lp-z-noise);
+    opacity: 0.7;
+    background-image: radial-gradient(var(--lp-color-overlay-noise) 0.75px, transparent 0.75px);
+    background-size: 2px 2px;
+    mix-blend-mode: screen;
+  }
+
+  .lp-scanlines::before {
+    z-index: var(--lp-z-scanline);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      var(--lp-color-overlay-scanline) 3px,
+      transparent 4px
+    );
+  }
+
+  .lp-vignette::before {
+    z-index: var(--lp-z-scanline);
+    background: radial-gradient(circle at center, transparent 42%, var(--lp-color-overlay-vignette) 100%);
+  }
+
+  .lp-focus-ring:focus-visible {
+    outline: 1px solid var(--lp-color-border-accent-bright);
+    outline-offset: 2px;
+    box-shadow: var(--lp-shadow-red-soft);
+  }
+
+  .lp-grid-2 {
+    display: grid;
+    gap: var(--lp-space-8);
+    grid-template-columns: 1fr;
+  }
+
+  .lp-content-copy {
+    max-width: 64ch;
+    overflow-wrap: anywhere;
+    line-height: var(--lp-line-height-body);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .lp-shell {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .lp-command-link {
+    min-height: 42px;
+  }
+
+  .lp-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .lp-grid-2 {
+    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr);
+    gap: 12px;
+  }
+
+  .lp-archive-grid {
+    grid-template-columns: repeat(2, minmax(200px, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .lp-shell {
+    padding-left: var(--lp-space-9);
+    padding-right: var(--lp-space-9);
+  }
+
+  .lp-command-link {
+    min-height: 42px;
+  }
+
+  .lp-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .lp-archive-grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .lp-shell {
+    padding-left: var(--lp-space-10);
+    padding-right: var(--lp-space-10);
+  }
+
+  .lp-command-link {
+    min-height: 40px;
+  }
+
+  .lp-archive-grid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .lp-grid-2 {
+    grid-template-columns: minmax(220px, 260px) 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .lp-shell {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .lp-panel,
+  .lp-status-strip,
+  .lp-panel-title {
+    border-radius: 0;
+  }
+
+  .lp-panel-title {
+    min-height: 28px;
+    height: auto;
+    gap: 8px;
+    align-items: center;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  .lp-panel-title > span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .lp-command-link {
+    min-height: 46px;
+    font-size: clamp(16px, 6.8vw, 28px);
+    line-height: 1.02;
+  }
+
+  .lp-status-strip {
+    line-height: 1.5;
+    padding: 8px 10px;
+  }
+
+  .lp-log {
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+  }
+
+  .lp-panel p,
+  .lp-panel a,
+  .lp-panel button,
+  .lp-status-strip {
+    overflow-wrap: anywhere;
+  }
+
+  .lp-panel {
+    overflow: hidden;
+  }
+
+  .lp-panel > div {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 414px) {
+  .lp-shell {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .lp-panel-title {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .lp-panel-title > span:first-child {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes lp-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes lp-title-flicker-80 {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  25% {
+    opacity: 0.72;
+    transform: translateX(1px);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(-1px);
+  }
+
+  75% {
+    opacity: 0.66;
+    transform: translateX(1px);
+  }
+}
+
+@keyframes lp-panel-reveal-140 {
+  0% {
+    opacity: 0;
+    transform: translateY(1px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lp-command-output-120 {
+  0% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes lp-status-blink-900 {
+  0%,
+  68% {
+    opacity: 1;
+  }
+
+  69%,
+  100% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes lp-signal-bars-1400 {
+  0%,
+  24% {
+    opacity: 0.3;
+  }
+
+  25%,
+  62% {
+    opacity: 1;
+  }
+
+  63%,
+  100% {
+    opacity: 0.42;
+  }
+}
+
+@keyframes lp-signal-noise-700 {
+  0% {
+    opacity: 0.3;
+    background-position: 0 0;
+  }
+
+  50% {
+    opacity: 0.72;
+    background-position: 1px 1px;
+  }
+
+  100% {
+    opacity: 0.4;
+    background-position: 2px 0;
+  }
+}
