@@ -230,11 +230,11 @@ select {
     border: 0;
     background: transparent;
     color: var(--lp-color-text-main);
-    font-family: var(--lp-font-display);
+    font-family: var(--lp-font-ui);
     text-transform: uppercase;
-    letter-spacing: var(--lp-letter-spacing-wide);
-    font-size: clamp(20px, 3.1vw, 38px);
-    line-height: var(--lp-line-height-tight);
+    letter-spacing: var(--lp-letter-spacing-ui);
+    font-size: clamp(18px, 2.8vw, 28px);
+    line-height: 1.08;
     transition: color var(--lp-duration-fast) linear, text-shadow var(--lp-duration-fast) linear,
       transform var(--lp-duration-instant) steps(1, end);
     cursor: pointer;
@@ -254,7 +254,7 @@ select {
 
   .lp-command-prefix {
     font-family: var(--lp-font-ui);
-    font-size: var(--lp-font-size-md);
+    font-size: inherit;
     color: var(--lp-color-primary-300);
   }
 
@@ -517,8 +517,8 @@ select {
 
   .lp-command-link {
     min-height: 46px;
-    font-size: clamp(16px, 6.8vw, 28px);
-    line-height: 1.02;
+    font-size: clamp(15px, 5.6vw, 22px);
+    line-height: 1.08;
   }
 
   .lp-status-strip {

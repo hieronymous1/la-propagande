@@ -62,8 +62,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="space-y-[7px] p-[10px]">
           <p className="m-0 font-lp-ui text-[18px] uppercase leading-[1.08] text-[var(--lp-color-text-strong)]">{product.title}</p>
 
-          <div className="flex items-start justify-between gap-2">
-            <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-muted)]">{categoryLine || formatMetaLabel(meta.category)}</p>
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <p className="lp-log m-0 min-w-0 text-[10px] text-[var(--lp-color-text-muted)]">{categoryLine || formatMetaLabel(meta.category)}</p>
             <span className={`lp-log border px-1 py-[2px] text-[10px] ${statusClass(meta.status)}`}>
               {statusLabel.replace('_', ' ')}
             </span>

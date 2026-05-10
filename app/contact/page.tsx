@@ -32,7 +32,7 @@ export default function ContactPage() {
         <PanelTitleBar title="WORK WITH LA PROPAGANDE" meta="OPEN REQUESTS" />
         <div className="space-y-2 p-3">
           <p className="lp-content-copy m-0 text-[14px] text-[var(--lp-color-text-main)]">
-            Want to collaborate, host a pop-up, or build with us between Paris and Beirut? Send your signal with role, city, and timeline through direct channels.
+            Want to collaborate, host a pop up, or build with us? Send us a message through direct channels.
           </p>
           <Link
             href="https://wa.me/message/HOUXU27KJCWAA1"

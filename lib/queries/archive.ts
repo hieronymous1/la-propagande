@@ -5,6 +5,7 @@ import type { ArchiveEntry } from '../site';
 interface MetaobjectField {
   key: string;
   value: string | null;
+  reference?: MediaReferenceNode | null;
 }
 
 interface MetaobjectNode {
@@ -12,6 +13,23 @@ interface MetaobjectNode {
   handle: string;
   fields: MetaobjectField[];
 }
+
+interface MediaImageReference {
+  __typename: 'MediaImage';
+  image: {
+    url: string;
+    altText: string | null;
+    width: number | null;
+    height: number | null;
+  } | null;
+}
+
+interface GenericFileReference {
+  __typename: 'GenericFile';
+  url: string;
+}
+
+type MediaReferenceNode = MediaImageReference | GenericFileReference;
 
 interface ArchiveQueryData {
   metaobjects: {
@@ -28,6 +46,21 @@ const ARCHIVE_METAOBJECT_TYPE = process.env.SHOPIFY_ARCHIVE_METAOBJECT_TYPE || '
 function getField(fields: MetaobjectField[], key: string): string | undefined {
   const raw = fields.find((field) => field.key === key)?.value;
   return raw?.trim() || undefined;
+}
+
+function getMediaField(fields: MetaobjectField[], key: string): string | undefined {
+  const field = fields.find((entry) => entry.key === key);
+  if (!field) return undefined;
+
+  if (field.reference?.__typename === 'MediaImage') {
+    return field.reference.image?.url ?? undefined;
+  }
+
+  if (field.reference?.__typename === 'GenericFile') {
+    return field.reference.url;
+  }
+
+  return field.value?.trim() || undefined;
 }
 
 function parseFolder(value?: string): ArchiveEntry['folder'] | undefined {
@@ -83,7 +116,7 @@ function mapMetaobjectToArchiveEntry(node: MetaobjectNode): ArchiveEntryWithOrde
   const summary = getField(node.fields, 'summary');
   if (!title || !type || !summary) return null;
 
-  const thumbnail = getField(node.fields, 'thumbnail') ?? '/images/placeholders/archive-01.svg';
+  const thumbnail = getMediaField(node.fields, 'thumbnail') ?? '/images/placeholders/archive-01.svg';
   const href = getField(node.fields, 'href');
 
   return {
@@ -111,6 +144,20 @@ export async function getArchiveEntries(): Promise<ArchiveEntry[]> {
             fields {
               key
               value
+              reference {
+                __typename
+                ... on MediaImage {
+                  image {
+                    url
+                    altText
+                    width
+                    height
+                  }
+                }
+                ... on GenericFile {
+                  url
+                }
+              }
             }
           }
         }

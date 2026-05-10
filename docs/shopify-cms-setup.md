@@ -60,6 +60,7 @@ Create article metafield definitions:
 - `status` (single_line_text_field)
 - `location` (single_line_text_field)
 - `source` (single_line_text_field)
+- `gallery` (list.file_reference, optional) for additional event images on the detail page
 
 ## 5) Archive metaobject type
 
@@ -69,7 +70,7 @@ Create metaobject definition `archive_entry` with fields:
 - `type` (single_line_text_field)
 - `status` (single_line_text_field) values: `AVAILABLE`, `DEGRADED`, `LOCKED`, `MIRROR`, `CORRUPTED`
 - `summary` (multi_line_text_field)
-- `thumbnail` (single_line_text_field, URL or path)
+- `thumbnail` (file_reference preferred; legacy URL/path text is still supported as fallback)
 - `href` (single_line_text_field, optional)
 - `behavior` (single_line_text_field, optional) values: `delayed`, `permission`, `broken-valid-link`, `sub-index`, `locked-teaser`, `repairable`
 - `sort_order` (number_integer, optional)
@@ -79,5 +80,5 @@ Then create entries for each archive record used by the page.
 ## 6) Runtime behavior implemented
 
 - Products: queries read `lp` metafields and map into `product.lpMeta`, then fallback to existing local seed logic if fields are missing.
-- Blog: queries read `lp` metafields and map into `article.lpMeta`, then fallback to existing transmission normalization.
-- Archive: page reads Shopify metaobjects (`archive_entry`) at request-time; if unavailable/empty, it falls back to local `ARCHIVE_ENTRIES`.
+- Blog: queries read `lp` metafields, generate an excerpt when one is missing, and optionally render a `gallery` file list on the event detail page.
+- Archive: page reads Shopify metaobjects (`archive_entry`) at request-time, supports Shopify-managed media for `thumbnail`, and falls back to local `ARCHIVE_ENTRIES` if unavailable/empty.
