@@ -194,7 +194,7 @@ export async function getArchiveEntries(): Promise<ArchiveEntry[]> {
       }));
 
     if (mapped.length === 0) return ARCHIVE_ENTRIES;
-    return mapped.slice(0, 10);
+    return mapped;
   } catch {
     return ARCHIVE_ENTRIES;
   }

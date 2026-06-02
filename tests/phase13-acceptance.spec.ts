@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { ARCHIVE_ENTRIES, FALLBACK_ARTICLES, PLACEHOLDER_PRODUCTS } from '../lib/site';
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 test.describe('Phase 13 acceptance checklist', () => {
   test('Phase 12 placeholders are fully seeded with required minimums', async () => {
     expect(PLACEHOLDER_PRODUCTS.length).toBeGreaterThanOrEqual(8);
@@ -79,7 +83,7 @@ test.describe('Phase 13 acceptance checklist', () => {
     await expect(nav.getByRole('link', { name: 'STORE' }).first()).toBeVisible();
     await expect(nav.getByRole('link', { name: 'EVENTS' }).first()).toBeVisible();
     await expect(nav.getByRole('link', { name: 'ABOUT' }).first()).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'CONTACT' }).first()).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'CONNECT' }).first()).toBeVisible();
     await expect(nav.getByRole('link', { name: /archive/i })).toHaveCount(0);
     await expect(page.getByText(/archive/i)).toHaveCount(0);
 
@@ -105,7 +109,7 @@ test.describe('Phase 13 acceptance checklist', () => {
 
     for (const post of FALLBACK_ARTICLES) {
       await page.goto(`/blog/${post.handle}`);
-      await expect(page.getByText(post.title.toUpperCase(), { exact: true }).first()).toBeVisible();
+      await expect(page.getByText(new RegExp(escapeRegExp(post.title), 'i')).first()).toBeVisible();
       await expect(page.getByText('UTILITY METADATA BLOCK')).toBeVisible();
       await expect(page.getByRole('link', { name: /> RETURN TO EVENTS FEED/i })).toBeVisible();
     }

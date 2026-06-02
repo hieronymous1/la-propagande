@@ -4,6 +4,8 @@ This project now supports Shopify-backed content for:
 - Products (`/products`) via product metafields in namespace `lp`
 - Blog (`/blog`) via article metafields in namespace `lp`
 - Archive (`/archive`) via metaobjects (default type: `archive_entry`)
+- About (`/about`) via metaobjects (default type: `about_section`)
+- Locations (`/locations`) via metaobjects (default type: `location_entry`)
 
 ## 1) MCP + CLI prerequisites
 
@@ -28,8 +30,11 @@ SHOPIFY_ADMIN_API_ACCESS_TOKEN=...
 # SHOPIFY_ADMIN_ACCESS_TOKEN=...
 SHOPIFY_CONTENT_NAMESPACE=lap
 SHOPIFY_ARCHIVE_METAOBJECT_TYPE=archive_entry
+SHOPIFY_ABOUT_METAOBJECT_TYPE=about_section
+SHOPIFY_LOCATION_METAOBJECT_TYPE=location_entry
 SHOPIFY_STOREFRONT_API_VERSION=2024-01
 SHOPIFY_ADMIN_API_VERSION=2024-01
+SHOPIFY_SITE_ORIGIN=https://lapropagande.com
 ```
 
 Notes:
@@ -77,8 +82,45 @@ Create metaobject definition `archive_entry` with fields:
 
 Then create entries for each archive record used by the page.
 
-## 6) Runtime behavior implemented
+## 6) About metaobject type
+
+Create metaobject definition `about_section` with fields:
+- `label` (single_line_text_field)
+- `body` (multi_line_text_field)
+- `sort_order` (number_integer, optional)
+
+Then create one entry per About module block.
+
+## 7) Locations metaobject type
+
+Create metaobject definition `location_entry` with fields:
+- `title` (single_line_text_field)
+- `kind` (single_line_text_field) values: `showroom`, `selling_point`
+- `address` (multi_line_text_field)
+- `note` (multi_line_text_field, optional)
+- `date_range` (single_line_text_field, optional)
+- `hours` (single_line_text_field, optional)
+- `sort_order` (number_integer, optional)
+
+Then create entries for the current showroom and selling-point list.
+
+## 8) Placeholder product media sync
+
+After deployment, assign placeholder media to products missing images:
+
+```bash
+npm run shopify:sync-placeholders
+```
+
+Notes:
+- The script only targets products with zero media entries.
+- It uses `SHOPIFY_SITE_ORIGIN` plus the deployed `/public/images/placeholders/*.svg` assets as the source URLs.
+
+## 9) Runtime behavior implemented
 
 - Products: queries read `lp` metafields and map into `product.lpMeta`, then fallback to existing local seed logic if fields are missing.
+- Products: description HTML is cleaned so inline `FILE NOTES:` paragraphs are extracted into a dedicated `file_notes` field/panel.
 - Blog: queries read `lp` metafields, generate an excerpt when one is missing, and optionally render a `gallery` file list on the event detail page.
 - Archive: page reads Shopify metaobjects (`archive_entry`) at request-time, supports Shopify-managed media for `thumbnail`, and falls back to local `ARCHIVE_ENTRIES` if unavailable/empty.
+- About: page reads Shopify metaobjects (`about_section`) at request-time and falls back to local blocks if unavailable/empty.
+- Locations: page reads Shopify metaobjects (`location_entry`) at request-time and falls back to local entries if unavailable/empty.

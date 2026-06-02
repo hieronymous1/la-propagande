@@ -64,6 +64,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   const price = selectedVariant?.price ?? product.priceRange.minVariantPrice;
   const summary = product.lpMeta?.summary ?? product.description;
+  const fileNotes = product.lpMeta?.fileNotes ?? 'No dossier notes available.';
   const status = productStatus(product, selectedVariant);
   const friendlyStatus = formatStatus(status);
 
@@ -82,9 +83,9 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
     () => [
       { label: 'Transmission', value: product.lpMeta?.transmission ?? 'Unset' },
       { label: 'Drop', value: product.lpMeta?.drop ?? 'Unset' },
-      { label: 'File Notes', value: product.lpMeta?.fileNotes ?? 'No dossier notes available.' },
+      { label: 'File Notes', value: fileNotes },
     ],
-    [product]
+    [fileNotes, product]
   );
 
   async function handleAddToCart() {
@@ -99,9 +100,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   return (
     <div className="space-y-3">
-      <StatusStrip>
-        ITEM DOSSIER / HANDLE: {product.handle.toUpperCase()} / STATUS: {friendlyStatus.toUpperCase()} / PRICE: {formatPrice(price.amount, price.currencyCode)}
-      </StatusStrip>
+      <StatusStrip>ITEM DOSSIER / HANDLE: {product.handle.toUpperCase()} / STATUS: {friendlyStatus.toUpperCase()} / PRICE: {formatPrice(price.amount, price.currencyCode)}</StatusStrip>
 
       <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
         <Panel className="overflow-hidden">
@@ -252,6 +251,13 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       </div>
 
       <Panel>
+        <PanelTitleBar title="SUMMARY.LOG" meta="SHORT FORM" />
+        <div className="space-y-2 p-[10px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
+          <p className="m-0">{summary || 'No summary available.'}</p>
+        </div>
+      </Panel>
+
+      <Panel>
         <PanelTitleBar title="DESCRIPTION.LOG" meta="LONG FORM" />
         <div className="space-y-2 p-[10px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
           {product.descriptionHtml ? (
@@ -259,6 +265,13 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
           ) : (
             <p className="m-0">{product.description || 'No long description available.'}</p>
           )}
+        </div>
+      </Panel>
+
+      <Panel>
+        <PanelTitleBar title="FILE NOTES" meta="GRAPHIC DOSSIER" />
+        <div className="space-y-2 p-[10px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
+          <p className="m-0 whitespace-pre-line">{fileNotes}</p>
         </div>
       </Panel>
 

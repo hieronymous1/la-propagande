@@ -9,7 +9,7 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page.getByRole('button', { name: /ENTER STORE/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /VIEW EVENTS/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /ABOUT/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /CONTACT/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /CONNECT/i })).toBeVisible();
     await expect(page.getByText(/archive/i)).toHaveCount(0);
     await expect(page.getByPlaceholder('SEARCH PRODUCTS OR EVENTS').first()).toBeVisible();
 
@@ -23,6 +23,7 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page).toHaveURL('/about');
 
     await page.goto('/contact');
+    await expect(page.getByRole('link', { name: /VIEW LOCATIONS/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /> COMMUNITY/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /> ARCHIVE INSTA/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /> WHATSAPP/i })).toHaveCount(2);
@@ -59,8 +60,20 @@ test.describe('LA PROPAGANDE smoke', () => {
     const totalCards = await productLinks.count();
     expect(totalCards).toBeGreaterThanOrEqual(8);
 
-    await expect(page.getByText('ADD TO CART').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ADD TO CART' }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Increase quantity' }).first()).toBeVisible();
     await expect(page.getByText('INVENTORY DOSSIER', { exact: true })).toBeVisible();
+  });
+
+  test('catalog card quantity controls add multiple units to cart', async ({ page }) => {
+    await page.goto('/products');
+
+    await page.getByRole('button', { name: 'Increase quantity' }).first().click();
+    await page.getByRole('button', { name: 'ADD TO CART' }).first().click();
+    await page.getByRole('button', { name: 'Open cart' }).first().click();
+
+    await expect(page.getByRole('dialog', { name: 'Cart' })).toBeVisible();
+    await expect(page.getByText('2').first()).toBeVisible();
   });
 
   test('product detail route renders full dossier metadata and controls', async ({ page }) => {
@@ -82,11 +95,23 @@ test.describe('LA PROPAGANDE smoke', () => {
 
     await expect(page.getByText('VARIANT / SIZE')).toBeVisible();
     await expect(page.getByRole('button', { name: 'ADD TO CART' })).toBeVisible();
+    await expect(page.getByText('SUMMARY.LOG')).toBeVisible();
+    await expect(page.getByText('FILE NOTES', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: /> RETURN TO CATALOG/i })).toBeVisible();
 
     const mediaPanel = page.locator('.lp-panel', { hasText: 'MEDIA.GALLERY' });
     await expect(mediaPanel).toBeVisible();
     await expect(mediaPanel.locator('img').first()).toBeVisible();
+  });
+
+  test('primary navigation exposes Connect and routes to locations', async ({ page }) => {
+    await page.goto('/products');
+    await expect(page.getByRole('link', { name: 'CONNECT' }).first()).toBeVisible();
+
+    await page.goto('/locations');
+    await expect(page.getByText('PHYSICAL LOCATIONS', { exact: true })).toBeVisible();
+    await expect(page.getByText(/SHOWROOM BADARO/i)).toBeVisible();
+    await expect(page.getByText(/ABC ASHRAFIEH/i)).toBeVisible();
   });
 
   test('events feed route renders pinned transmission list with metadata labels', async ({ page }) => {
@@ -111,7 +136,7 @@ test.describe('LA PROPAGANDE smoke', () => {
   test('transmission detail route renders record sections, utility block, and related links', async ({ page }) => {
     await page.goto('/blog/la-propagande-x-maddina-market');
 
-    await expect(page.getByText('LA PROPAGANDE X MADDINA MARKET', { exact: true })).toBeVisible();
+    await expect(page.getByText(/LA PROPAGANDE X MADDINA MARKET/i).first()).toBeVisible();
     await expect(page.getByText('UTILITY METADATA BLOCK', { exact: true })).toBeVisible();
     await expect(page.getByText('RELATED TRANSMISSIONS', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: /> RETURN TO EVENTS FEED/i })).toBeVisible();
@@ -131,7 +156,7 @@ test.describe('LA PROPAGANDE smoke', () => {
 
     const articlePanel = page.locator('.lp-panel').first();
     await expect(articlePanel.locator('img').first()).toBeVisible();
-    await expect(page.getByText(/entered Maddina Market as a live node/i)).toBeVisible();
+    await expect(page.getByText(/entered Maddina Market as a live node|Where chaotic harmony meets creation/i)).toBeVisible();
   });
 
   test('cart drawer opens and closes', async ({ page }) => {

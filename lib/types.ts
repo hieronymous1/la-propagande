@@ -26,6 +26,7 @@ export interface ProductMeta {
   status: ProductStatus;
   origin: string;
   summary: string;
+  description?: string;
   category?: ProductCategory;
   subcategory?: string;
   collection?: string;
@@ -94,4 +95,20 @@ export interface Cart {
     subtotalAmount: MoneyV2;
   };
   lines: { edges: { node: CartLine }[] };
+}
+
+export interface AboutSection {
+  id: string;
+  label: string;
+  body: string;
+}
+
+export interface LocationEntry {
+  id: string;
+  title: string;
+  kind: 'showroom' | 'selling_point';
+  address: string;
+  note?: string;
+  dateRange?: string;
+  hours?: string;
 }

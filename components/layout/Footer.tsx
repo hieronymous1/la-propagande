@@ -11,7 +11,7 @@ export default function Footer() {
             href="/contact"
             className="lp-focus-ring lp-log inline-flex min-h-[36px] items-center border border-[var(--lp-color-border-subtle)] px-3 py-1 text-[10px] text-[var(--lp-color-text-muted)] hover:border-[var(--lp-color-border-default)] hover:text-[var(--lp-color-text-main)]"
           >
-            CONTACT
+            CONNECT
           </Link>
         </div>
 

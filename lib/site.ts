@@ -1,4 +1,4 @@
-import type { Article, Product, ProductCategory, ProductStatus } from '@/lib/types';
+import type { AboutSection, Article, LocationEntry, Product, ProductCategory, ProductStatus } from '@/lib/types';
 
 export interface SocialLink {
   label: string;
@@ -21,11 +21,6 @@ export interface ArchiveEntry {
     | 'sub-index'
     | 'locked-teaser'
     | 'repairable';
-}
-
-export interface ManifestoBlock {
-  label: string;
-  body: string;
 }
 
 export interface GalleryItem {
@@ -75,20 +70,72 @@ export const ARCHIVE_FOLLOW_LINK: SocialLink = {
   href: 'https://www.instagram.com/lapropagande.archive?igsh=OWdid2pucG9vNW5m&utm_source=qr',
 };
 
-export const CONTACT_MANIFESTO: ManifestoBlock[] = [
+export const ABOUT_FALLBACK_SECTIONS: AboutSection[] = [
   {
+    id: 'about-vision',
     label: 'Vision',
     body: 'Build a resistance movement where clothing works as a public signal. Every piece should carry identity, defiance, and the courage to speak clearly.',
   },
   {
+    id: 'about-mission',
     label: 'Mission',
     body: 'Design and produce high-quality garments between Beirut and Paris that combine streetwear, military references, and conscious production into wearable statements.',
   },
   {
+    id: 'about-purpose',
     label: 'Purpose',
     body: 'Use every drop to challenge passive consumption and trigger conversation, action, and community through culture, design, and direct expression.',
   },
 ];
+
+export const LOCATION_FALLBACK_ENTRIES: LocationEntry[] = [
+  {
+    id: 'location-showroom-badaro',
+    title: 'Showroom Badaro',
+    kind: 'showroom',
+    address: 'Badaro, Benoit Barakat street, George Calil Building, 1st floor',
+    note: 'By appointment only',
+  },
+  {
+    id: 'location-showroom-ashrafieh',
+    title: 'Showroom Ashrafieh',
+    kind: 'showroom',
+    address: 'Palais de justice street قصر العدل, Factory 4376 building, block C, 9th floor',
+    note: 'By appointment only',
+  },
+  {
+    id: 'location-selling-afkart-popup',
+    title: 'Afkart popup',
+    kind: 'selling_point',
+    address: 'ABC Ashrafieh, Mall Square concept store. Level 0 in front of Bar Tartine',
+    dateRange: 'Until the end of June 2026',
+  },
+  {
+    id: 'location-selling-mzaar-summer-festival-expo',
+    title: 'Mzaar summer festival Expo',
+    kind: 'selling_point',
+    address: 'Stand 18, Kfardebian, Faraya',
+    dateRange: '30 July to 23 August 2026',
+    hours: '12 to 9 PM',
+  },
+];
+
+export function splitDescriptionAndFileNotes(descriptionHtml: string, fallbackNotes?: string): { descriptionHtml: string; fileNotes?: string } {
+  const notes: string[] = [];
+  const cleaned = descriptionHtml.replace(/<p>\s*FILE NOTES:\s*([\s\S]*?)<\/p>/gi, (_match, note) => {
+    const normalized = String(note).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (normalized) notes.push(normalized);
+    return '';
+  });
+
+  const normalizedDescription = cleaned.replace(/\n{2,}/g, '\n').trim();
+  const fileNotes = notes.join('\n').trim() || fallbackNotes?.trim();
+
+  return {
+    descriptionHtml: normalizedDescription,
+    fileNotes: fileNotes || undefined,
+  };
+}
 
 export const CUSTOM_JACKETS_GALLERY: GalleryItem[] = [
   {
@@ -293,18 +340,21 @@ const PLACEHOLDER_PRODUCT_SPECS: Array<{
 ];
 
 function placeholderProduct(spec: (typeof PLACEHOLDER_PRODUCT_SPECS)[number], index: number): Product {
+  const descriptionContent = splitDescriptionAndFileNotes(spec.description, `Placeholder record ${index + 1}`);
+
   return {
     id: `placeholder-product-${index + 1}`,
     title: spec.title,
     handle: spec.handle,
     description: spec.summary,
-    descriptionHtml: spec.description,
+    descriptionHtml: descriptionContent.descriptionHtml,
     productType: spec.productType,
     lpMeta: {
       itemCode: spec.itemCode,
       status: spec.status,
       origin: spec.origin,
       summary: spec.summary,
+      description: spec.description,
       category: spec.category,
       subcategory: spec.subcategory,
       collection: spec.collection,
@@ -312,7 +362,7 @@ function placeholderProduct(spec: (typeof PLACEHOLDER_PRODUCT_SPECS)[number], in
       featured: spec.featured,
       transmission: `TX-${String(index + 1).padStart(3, '0')}`,
       drop: `DROP-${String(index + 1).padStart(2, '0')}`,
-      fileNotes: `Placeholder record ${index + 1}`,
+      fileNotes: descriptionContent.fileNotes,
     },
     priceRange: {
       minVariantPrice: {
@@ -850,6 +900,26 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     href: 'https://osintframework.com',
     thumbnail: '/images/placeholders/archive-10.svg',
   },
+  {
+    id: 'arc-011',
+    folder: 'links',
+    title: 'Internet Archive',
+    type: 'INDEX',
+    status: 'AVAILABLE',
+    summary: 'Public archive for books, broadcasts, and recovered media.',
+    href: 'https://archive.org',
+    thumbnail: '/images/placeholders/archive-11.svg',
+  },
+  {
+    id: 'arc-012',
+    folder: 'links',
+    title: 'Wikileaks Archive',
+    type: 'INDEX',
+    status: 'MIRROR',
+    summary: 'Mirror index for leaked records, cables, and searchable source material.',
+    href: 'https://wikileaks.org',
+    thumbnail: '/images/placeholders/archive-12.svg',
+  },
 ];
 
 export interface ProductCatalogMeta {
@@ -936,15 +1006,18 @@ export function getFallbackProduct(handle: string): Product | null {
 
 function normalizeProduct(product: Product): Product {
   const meta = getProductCatalogMeta(product);
+  const descriptionContent = splitDescriptionAndFileNotes(product.descriptionHtml, product.lpMeta?.fileNotes);
   return {
     ...product,
+    descriptionHtml: descriptionContent.descriptionHtml,
     lpMeta: {
       itemCode: product.lpMeta?.itemCode ?? `LP-${product.handle.slice(0, 8).toUpperCase()}`,
       origin: product.lpMeta?.origin ?? 'HYBRID NODE',
       summary: product.lpMeta?.summary ?? product.description ?? meta.shortDescription,
+      description: product.lpMeta?.description ?? descriptionContent.descriptionHtml,
       transmission: product.lpMeta?.transmission,
       drop: product.lpMeta?.drop,
-      fileNotes: product.lpMeta?.fileNotes,
+      fileNotes: descriptionContent.fileNotes,
       status: meta.status,
       category: meta.category,
       subcategory: meta.subcategory,

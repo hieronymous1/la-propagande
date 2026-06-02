@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { label: 'Store', href: '/store' },
   { label: 'Events', href: '/events' },
   { label: 'About', href: '/about' },
-  { label: 'Contact', href: '/contact' },
+  { label: 'Connect', href: '/contact' },
 ] as const;
 
 export default function Navbar() {
@@ -55,7 +55,8 @@ export default function Navbar() {
                 pathname === link.href ||
                 pathname.startsWith(`${link.href}/`) ||
                 (link.href === '/store' && pathname.startsWith('/products')) ||
-                (link.href === '/events' && pathname.startsWith('/blog'));
+                (link.href === '/events' && pathname.startsWith('/blog')) ||
+                (link.href === '/contact' && pathname.startsWith('/locations'));
               return (
                 <Link
                   key={link.href}

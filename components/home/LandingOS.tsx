@@ -24,7 +24,7 @@ const PRIMARY_COMMANDS = [
   { label: 'ENTER STORE', route: '/store', exec: 'STORE.exe' },
   { label: 'VIEW EVENTS', route: '/events', exec: 'EVENTS.log' },
   { label: 'ABOUT', route: '/about', exec: 'ABOUT.sys' },
-  { label: 'CONTACT', route: '/contact', exec: 'CONTACT.net' },
+  { label: 'CONNECT', route: '/contact', exec: 'CONNECT.net' },
 ] as const;
 
 const LOG_LINES = [
@@ -151,7 +151,7 @@ export default function LandingOS() {
 
         <div className="lp-shell mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
           <StatusStrip>VISITOR COUNT: 00291</StatusStrip>
-          <StatusStrip className="hidden md:flex">ROUTE STATUS: STORE | EVENTS | ABOUT | CONTACT</StatusStrip>
+          <StatusStrip className="hidden md:flex">ROUTE STATUS: STORE | EVENTS | ABOUT | CONNECT</StatusStrip>
           <StatusStrip className="hidden xl:flex">RUNTIME: {toClock(uptimeSeconds)}</StatusStrip>
         </div>
       </main>

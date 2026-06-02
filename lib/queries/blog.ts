@@ -1,5 +1,5 @@
 import { shopifyFetch } from '../shopify';
-import { EVENT_FALLBACK_POSTS, getFallbackArticle, normalizeArticleForTransmission } from '../site';
+import { ensurePlaceholderPosts, EVENT_FALLBACK_POSTS, getFallbackArticle, normalizeArticleForTransmission } from '../site';
 import type { Article } from '../types';
 
 const CONTENT_NAMESPACE = process.env.SHOPIFY_CONTENT_NAMESPACE || 'lap';
@@ -176,12 +176,12 @@ export async function getBlogPosts(blogHandle: string): Promise<Article[]> {
       variables: { handle: blogHandle },
     });
 
-    if (!data.blog) return EVENT_FALLBACK_POSTS;
+    if (!data.blog) return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
     const shopifyPosts = data.blog.articles.edges.map((edge) => withLpMeta(edge.node));
-    if (shopifyPosts.length === 0) return EVENT_FALLBACK_POSTS;
-    return shopifyPosts.slice(0, 3);
+    if (shopifyPosts.length === 0) return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
+    return ensurePlaceholderPosts(shopifyPosts);
   } catch {
-    return EVENT_FALLBACK_POSTS;
+    return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
   }
 }
 
