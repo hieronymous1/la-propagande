@@ -58,7 +58,7 @@ async function fetchProducts() {
             id
             handle
             title
-            media(first: 1) {
+            media(first: 10) {
               edges {
                 node {
                   __typename
@@ -112,10 +112,12 @@ async function attachPlaceholder(product) {
 
 async function main() {
   const products = await fetchProducts();
-  const missingMedia = products.filter((product) => product.media.edges.length === 0);
+  const missingMedia = products.filter(
+    (product) => !product.media.edges.some((edge) => edge.node.__typename === 'MediaImage')
+  );
 
   if (missingMedia.length === 0) {
-    console.log('No products are missing media.');
+    console.log('No products are missing image media.');
     return;
   }
 

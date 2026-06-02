@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "shopify:setup-cms": "node scripts/shopify-setup-cms.mjs",
     "shopify:sync-placeholders": "node scripts/shopify-sync-placeholder-media.mjs",
     "qa:check": "npm run lint && npm run typecheck && npm run build && npm run test:smoke",
     "test:smoke": "playwright test",

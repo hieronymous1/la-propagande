@@ -17,6 +17,20 @@ This project now supports Shopify-backed content for:
 3. Authenticate Shopify CLI:
    - `shopify auth logout` (optional cleanup)
    - `shopify auth login`
+4. Install the project dependencies if they are not already present.
+
+## 1b) Bootstrap the Shopify CMS
+
+Run the idempotent setup script after the Admin token is available:
+
+```bash
+npm run shopify:setup-cms
+```
+
+This creates or verifies:
+- `lp` product metafield definitions
+- `about_section` metaobject definitions and seed entries
+- `location_entry` metaobject definitions and seed entries
 
 ## 2) Environment variables
 
@@ -113,7 +127,7 @@ npm run shopify:sync-placeholders
 ```
 
 Notes:
-- The script only targets products with zero media entries.
+- The script only targets products with no image media.
 - It uses `SHOPIFY_SITE_ORIGIN` plus the deployed `/public/images/placeholders/*.svg` assets as the source URLs.
 
 ## 9) Runtime behavior implemented

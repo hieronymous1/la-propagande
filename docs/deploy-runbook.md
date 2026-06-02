@@ -11,7 +11,8 @@
 1. Copy `.env.example` keys into production environment variables.
 2. Run `npm ci`.
 3. Run `npm run qa:check`.
-4. Confirm product, about, locations, blog, and contact pages load with production data.
+4. If the Shopify CMS has not been bootstrapped in this environment, run `npm run shopify:setup-cms`.
+5. Confirm product, about, locations, blog, and contact pages load with production data.
 
 ## Release Steps
 1. Deploy commit to production target.
