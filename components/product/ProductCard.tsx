@@ -94,24 +94,24 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <div className="space-y-2 border-t border-[var(--lp-color-border-subtle)] p-[10px]">
-        <div className="flex items-end justify-between gap-2">
-          <p className="m-0 text-[16px] leading-none text-[var(--lp-color-primary-100)]">{formatPrice(price.amount, price.currencyCode)}</p>
-          <span className="lp-log text-[10px] text-[var(--lp-color-text-muted)]">{canPurchase ? 'PURCHASE READY' : 'UNAVAILABLE'}</span>
+        <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-2">
+          <p className="m-0 whitespace-nowrap text-[16px] leading-none text-[var(--lp-color-primary-100)]">{formatPrice(price.amount, price.currencyCode)}</p>
+          <span className="lp-log whitespace-nowrap text-[10px] text-[var(--lp-color-text-muted)]">{canPurchase ? 'PURCHASE READY' : 'UNAVAILABLE'}</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center border border-[var(--lp-color-border-default)]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex w-full items-center border border-[var(--lp-color-border-default)] sm:w-auto">
             <button
               onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-              className="h-9 w-9 border-r border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)]"
+              className="h-9 flex-1 border-r border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:w-9 sm:flex-none"
               aria-label="Decrease quantity"
             >
               -
             </button>
-            <span className="lp-log w-9 text-center text-[11px]">{quantity}</span>
+            <span className="lp-log flex-1 text-center text-[11px] sm:w-9 sm:flex-none">{quantity}</span>
             <button
               onClick={() => setQuantity((current) => current + 1)}
-              className="h-9 w-9 border-l border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)]"
+              className="h-9 flex-1 border-l border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:w-9 sm:flex-none"
               aria-label="Increase quantity"
             >
               +
@@ -121,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={!canPurchase || adding}
-            className="lp-focus-ring lp-log min-h-[36px] flex-1 border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-2 text-[10px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="lp-focus-ring lp-log min-h-[36px] w-full border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-2 text-[10px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1"
             aria-label="ADD TO CART"
           >
             {adding ? 'ADDING...' : 'ADD TO CART'}
