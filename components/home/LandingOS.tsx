@@ -117,7 +117,15 @@ export default function LandingOS() {
               <div className="space-y-3">
                 <div className="space-y-1">
                   <Image src="/images/lp-logo-red.png" alt="La Propagande" width={60} height={60} priority className="h-[52px] w-[52px] object-contain" />
-                  <p className="font-lp-ui m-0 text-[clamp(24px,5vw,40px)] uppercase leading-[1.02] text-[var(--lp-color-text-strong)]">LA PROPAGANDE</p>
+                  <Image
+                    src="/images/lp-text-logo-cropped.png"
+                    alt="La Propagande"
+                    width={2732}
+                    height={609}
+                    priority
+                    className="h-auto w-[min(100%,560px)] invert"
+                    sizes="(max-width: 768px) calc(100vw - 44px), 560px"
+                  />
                   <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-muted)]">PARIS {'<->'} BEIRUT</p>
                 </div>
 
