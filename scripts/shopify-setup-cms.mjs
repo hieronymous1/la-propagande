@@ -1,19 +1,61 @@
 /**
  * Idempotent Shopify CMS setup.
- * Creates about_section + location_entry metaobject definitions + seeds entries.
- * Creates lp.* product metafield definitions.
+ * Creates about_section + location_entry + archive_entry metaobject definitions.
+ * Seeds about + location entries.
+ * Creates product + article metafield definitions.
  * Safe to re-run: checks existence before creating.
  */
+
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const dirname = fileURLToPath(new URL('.', import.meta.url));
+const projectRoot = resolve(dirname, '..');
+
+function loadEnvFile(path = resolve(projectRoot, '.env.local')) {
+  if (!existsSync(path)) return;
+
+  const content = readFileSync(path, 'utf8');
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match) continue;
+
+    const [, key, rawValue] = match;
+    if (process.env[key]) continue;
+
+    process.env[key] = rawValue.trim().replace(/^['"]|['"]$/g, '');
+  }
+}
+
+loadEnvFile();
 
 const domain = process.env.SHOPIFY_STORE_DOMAIN;
 const accessToken =
   process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const apiVersion = process.env.SHOPIFY_ADMIN_API_VERSION ?? '2024-01';
+const contentNamespace = process.env.SHOPIFY_CONTENT_NAMESPACE ?? 'lap';
+const aboutType = process.env.SHOPIFY_ABOUT_METAOBJECT_TYPE ?? 'about_section';
+const locationType = process.env.SHOPIFY_LOCATION_METAOBJECT_TYPE ?? 'location_entry';
+const archiveType = process.env.SHOPIFY_ARCHIVE_METAOBJECT_TYPE ?? 'archive_entry';
 
 if (!domain) throw new Error('SHOPIFY_STORE_DOMAIN is required');
 if (!accessToken) throw new Error('SHOPIFY_ADMIN_API_ACCESS_TOKEN is required');
 
 const endpoint = `https://${domain}/admin/api/${apiVersion}/graphql.json`;
+const accessScopesEndpoint = `https://${domain}/admin/oauth/access_scopes.json`;
+
+const REQUIRED_ADMIN_SCOPES = [
+  'read_metaobject_definitions',
+  'write_metaobject_definitions',
+  'read_metaobjects',
+  'write_metaobjects',
+  'read_metafield_definitions',
+  'write_metafield_definitions',
+];
 
 async function adminFetch(query, variables = {}) {
   const res = await fetch(endpoint, {
@@ -27,12 +69,43 @@ async function adminFetch(query, variables = {}) {
   return json.data;
 }
 
+async function getAccessScopes() {
+  const res = await fetch(accessScopesEndpoint, {
+    headers: {
+      'X-Shopify-Access-Token': accessToken,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Unable to read Admin token scopes: ${res.status} ${res.statusText}`);
+  }
+
+  const json = await res.json();
+  return (json.access_scopes ?? []).map((scope) => scope.handle);
+}
+
+async function assertRequiredScopes() {
+  const scopes = await getAccessScopes();
+  const missing = REQUIRED_ADMIN_SCOPES.filter((scope) => !scopes.includes(scope));
+
+  if (missing.length > 0) {
+    throw new Error(
+      [
+        'SHOPIFY_ADMIN_API_ACCESS_TOKEN is missing required scopes:',
+        ...missing.map((scope) => `- ${scope}`),
+        '',
+        'Update the Shopify custom app Admin API scopes, reinstall/save the app, then replace SHOPIFY_ADMIN_API_ACCESS_TOKEN with the new Admin API access token.',
+      ].join('\n')
+    );
+  }
+}
+
 // ── Metaobject helpers ────────────────────────────────────────────────────────
 
 async function getMetaobjectDefinition(type) {
   const data = await adminFetch(`
     query GetDef($type: String!) {
-      metaobjectDefinitionByType(type: $type) { id type }
+      metaobjectDefinitionByType(type: $type) { id type access { storefront } }
     }`, { type });
   return data.metaobjectDefinitionByType ?? null;
 }
@@ -48,12 +121,37 @@ async function createMetaobjectDefinition(name, type, fields) {
     def: {
       name,
       type,
+      access: {
+        storefront: 'PUBLIC_READ',
+      },
       fieldDefinitions: fields,
     },
   });
   const errs = data.metaobjectDefinitionCreate.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e) => e.message).join(', '));
   return data.metaobjectDefinitionCreate.metaobjectDefinition;
+}
+
+async function updateMetaobjectStorefrontAccess(definition) {
+  if (definition.access?.storefront === 'PUBLIC_READ') return false;
+
+  const data = await adminFetch(`
+    mutation UpdateDef($id: ID!, $def: MetaobjectDefinitionUpdateInput!) {
+      metaobjectDefinitionUpdate(id: $id, definition: $def) {
+        metaobjectDefinition { id type access { storefront } }
+        userErrors { field message }
+      }
+    }`, {
+    id: definition.id,
+    def: {
+      access: {
+        storefront: 'PUBLIC_READ',
+      },
+    },
+  });
+  const errs = data.metaobjectDefinitionUpdate.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e) => e.message).join(', '));
+  return true;
 }
 
 async function listMetaobjects(type) {
@@ -90,7 +188,7 @@ async function listMetafieldDefinitions(ownerType, namespace) {
   const data = await adminFetch(`
     query ListDefs($ownerType: MetafieldOwnerType!, $namespace: String!) {
       metafieldDefinitions(first: 100, ownerType: $ownerType, namespace: $namespace) {
-        edges { node { id key namespace type { name } } }
+        edges { node { id key namespace type { name } access { storefront } } }
       }
     }`, { ownerType, namespace });
   return data.metafieldDefinitions.edges.map((e) => e.node);
@@ -104,13 +202,45 @@ async function createMetafieldDefinition(ownerType, namespace, key, type, name, 
         userErrors { field message }
       }
     }`, {
-    def: { ownerType, namespace, key, type, name, description },
+    def: {
+      ownerType,
+      namespace,
+      key,
+      type,
+      name,
+      description,
+      access: {
+        storefront: 'PUBLIC_READ',
+      },
+    },
   });
   const errs = data.metafieldDefinitionCreate.userErrors ?? [];
   if (errs.length && !errs.some((e) => e.message?.includes('taken'))) {
     throw new Error(errs.map((e) => e.message).join(', '));
   }
   return data.metafieldDefinitionCreate.createdDefinition;
+}
+
+async function updateMetafieldStorefrontAccess(definition) {
+  if (definition.access?.storefront === 'PUBLIC_READ') return false;
+
+  const data = await adminFetch(`
+    mutation UpdateMfd($id: ID!, $def: MetafieldDefinitionUpdateInput!) {
+      metafieldDefinitionUpdate(id: $id, definition: $def) {
+        updatedDefinition { id key namespace access { storefront } }
+        userErrors { field message }
+      }
+    }`, {
+    id: definition.id,
+    def: {
+      access: {
+        storefront: 'PUBLIC_READ',
+      },
+    },
+  });
+  const errs = data.metafieldDefinitionUpdate.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e) => e.message).join(', '));
+  return true;
 }
 
 // ── Seed data ─────────────────────────────────────────────────────────────────
@@ -143,16 +273,28 @@ const PRODUCT_METAFIELDS = [
   { key: 'file_notes', type: 'multi_line_text_field', name: 'File Notes' },
 ];
 
+const ARTICLE_METAFIELDS = [
+  { key: 'transmission_id', type: 'single_line_text_field', name: 'Transmission ID' },
+  { key: 'channel', type: 'single_line_text_field', name: 'Channel' },
+  { key: 'status', type: 'single_line_text_field', name: 'Status' },
+  { key: 'location', type: 'single_line_text_field', name: 'Location' },
+  { key: 'source', type: 'single_line_text_field', name: 'Source' },
+  { key: 'gallery', type: 'list.file_reference', name: 'Gallery' },
+];
+
 // ── Steps ─────────────────────────────────────────────────────────────────────
 
 async function setupAboutMetaobject() {
-  console.log('\n── about_section metaobject ──');
+  console.log(`\n── ${aboutType} metaobject ──`);
 
-  let def = await getMetaobjectDefinition('about_section');
+  let def = await getMetaobjectDefinition(aboutType);
   if (def) {
     console.log('  definition already exists:', def.id);
+    if (await updateMetaobjectStorefrontAccess(def)) {
+      console.log('  storefront access set to PUBLIC_READ');
+    }
   } else {
-    def = await createMetaobjectDefinition('About Section', 'about_section', [
+    def = await createMetaobjectDefinition('About Section', aboutType, [
       { key: 'label', type: 'single_line_text_field', name: 'Label', required: true },
       { key: 'body', type: 'multi_line_text_field', name: 'Body', required: true },
       { key: 'sort_order', type: 'number_integer', name: 'Sort Order' },
@@ -160,7 +302,7 @@ async function setupAboutMetaobject() {
     console.log('  created definition:', def.id);
   }
 
-  const existing = await listMetaobjects('about_section');
+  const existing = await listMetaobjects(aboutType);
   const existingLabels = new Set(
     existing.map((o) => o.fields.find((f) => f.key === 'label')?.value).filter(Boolean)
   );
@@ -172,7 +314,7 @@ async function setupAboutMetaobject() {
       console.log(`  skip existing: ${section.label}`);
       continue;
     }
-    await createMetaobject('about_section', section);
+    await createMetaobject(aboutType, section);
     console.log(`  seeded: ${section.label}`);
     created++;
   }
@@ -180,13 +322,16 @@ async function setupAboutMetaobject() {
 }
 
 async function setupLocationMetaobject() {
-  console.log('\n── location_entry metaobject ──');
+  console.log(`\n── ${locationType} metaobject ──`);
 
-  let def = await getMetaobjectDefinition('location_entry');
+  let def = await getMetaobjectDefinition(locationType);
   if (def) {
     console.log('  definition already exists:', def.id);
+    if (await updateMetaobjectStorefrontAccess(def)) {
+      console.log('  storefront access set to PUBLIC_READ');
+    }
   } else {
-    def = await createMetaobjectDefinition('Location Entry', 'location_entry', [
+    def = await createMetaobjectDefinition('Location Entry', locationType, [
       { key: 'title', type: 'single_line_text_field', name: 'Title', required: true },
       { key: 'kind', type: 'single_line_text_field', name: 'Kind', required: true },
       { key: 'address', type: 'multi_line_text_field', name: 'Address', required: true },
@@ -198,7 +343,7 @@ async function setupLocationMetaobject() {
     console.log('  created definition:', def.id);
   }
 
-  const existing = await listMetaobjects('location_entry');
+  const existing = await listMetaobjects(locationType);
   const existingTitles = new Set(
     existing.map((o) => o.fields.find((f) => f.key === 'title')?.value).filter(Boolean)
   );
@@ -214,7 +359,7 @@ async function setupLocationMetaobject() {
     if (entry.note) fields.note = entry.note;
     if (entry.date_range) fields.date_range = entry.date_range;
     if (entry.hours) fields.hours = entry.hours;
-    await createMetaobject('location_entry', fields);
+    await createMetaobject(locationType, fields);
     console.log(`  seeded: ${entry.title}`);
     created++;
   }
@@ -222,34 +367,101 @@ async function setupLocationMetaobject() {
 }
 
 async function setupProductMetafields() {
-  console.log('\n── product metafield definitions (namespace: lap) ──');
+  console.log(`\n── product metafield definitions (namespace: ${contentNamespace}) ──`);
 
-  const existing = await listMetafieldDefinitions('PRODUCT', 'lap');
-  const existingKeys = new Set(existing.map((d) => d.key));
+  const existing = await listMetafieldDefinitions('PRODUCT', contentNamespace);
+  const existingByKey = new Map(existing.map((d) => [d.key, d]));
   console.log(`  existing definitions: ${existing.length}`);
 
   let created = 0;
+  let updated = 0;
   for (const field of PRODUCT_METAFIELDS) {
-    if (existingKeys.has(field.key)) {
-      console.log(`  skip existing: lap.${field.key}`);
+    const existingDefinition = existingByKey.get(field.key);
+    if (existingDefinition) {
+      if (await updateMetafieldStorefrontAccess(existingDefinition)) {
+        console.log(`  storefront access set: ${contentNamespace}.${field.key}`);
+        updated++;
+      } else {
+        console.log(`  skip existing: ${contentNamespace}.${field.key}`);
+      }
       continue;
     }
-    const result = await createMetafieldDefinition('PRODUCT', 'lap', field.key, field.type, field.name);
+    const result = await createMetafieldDefinition('PRODUCT', contentNamespace, field.key, field.type, field.name);
     if (result) {
-      console.log(`  created: lap.${field.key}`);
+      console.log(`  created: ${contentNamespace}.${field.key}`);
       created++;
     } else {
-      console.log(`  already existed (key taken): lap.${field.key}`);
+      console.log(`  already existed (key taken): ${contentNamespace}.${field.key}`);
     }
   }
-  if (created === 0) console.log('  all definitions already present');
+  if (created === 0 && updated === 0) console.log('  all definitions already present');
+}
+
+async function setupArticleMetafields() {
+  console.log(`\n── article metafield definitions (namespace: ${contentNamespace}) ──`);
+
+  const existing = await listMetafieldDefinitions('ARTICLE', contentNamespace);
+  const existingByKey = new Map(existing.map((d) => [d.key, d]));
+  console.log(`  existing definitions: ${existing.length}`);
+
+  let created = 0;
+  let updated = 0;
+  for (const field of ARTICLE_METAFIELDS) {
+    const existingDefinition = existingByKey.get(field.key);
+    if (existingDefinition) {
+      if (await updateMetafieldStorefrontAccess(existingDefinition)) {
+        console.log(`  storefront access set: ${contentNamespace}.${field.key}`);
+        updated++;
+      } else {
+        console.log(`  skip existing: ${contentNamespace}.${field.key}`);
+      }
+      continue;
+    }
+    const result = await createMetafieldDefinition('ARTICLE', contentNamespace, field.key, field.type, field.name);
+    if (result) {
+      console.log(`  created: ${contentNamespace}.${field.key}`);
+      created++;
+    } else {
+      console.log(`  already existed (key taken): ${contentNamespace}.${field.key}`);
+    }
+  }
+  if (created === 0 && updated === 0) console.log('  all definitions already present');
+}
+
+async function setupArchiveMetaobject() {
+  console.log(`\n── ${archiveType} metaobject ──`);
+
+  let def = await getMetaobjectDefinition(archiveType);
+  if (def) {
+    console.log('  definition already exists:', def.id);
+    if (await updateMetaobjectStorefrontAccess(def)) {
+      console.log('  storefront access set to PUBLIC_READ');
+    }
+    return;
+  }
+
+  def = await createMetaobjectDefinition('Archive Entry', archiveType, [
+    { key: 'title', type: 'single_line_text_field', name: 'Title', required: true },
+    { key: 'folder', type: 'single_line_text_field', name: 'Folder', required: true },
+    { key: 'type', type: 'single_line_text_field', name: 'Type', required: true },
+    { key: 'status', type: 'single_line_text_field', name: 'Status' },
+    { key: 'summary', type: 'multi_line_text_field', name: 'Summary', required: true },
+    { key: 'thumbnail', type: 'file_reference', name: 'Thumbnail' },
+    { key: 'href', type: 'single_line_text_field', name: 'Href' },
+    { key: 'behavior', type: 'single_line_text_field', name: 'Behavior' },
+    { key: 'sort_order', type: 'number_integer', name: 'Sort Order' },
+  ]);
+  console.log('  created definition:', def.id);
 }
 
 async function main() {
   console.log(`Shopify CMS setup → ${domain}`);
+  await assertRequiredScopes();
   await setupAboutMetaobject();
   await setupLocationMetaobject();
+  await setupArchiveMetaobject();
   await setupProductMetafields();
+  await setupArticleMetafields();
   console.log('\n✓ Done.');
 }
 

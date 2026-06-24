@@ -9,13 +9,6 @@ import {
   ReactNode,
 } from 'react';
 import type { Cart } from '@/lib/types';
-import {
-  createCart as shopifyCreateCart,
-  getCart as shopifyGetCart,
-  addToCart as shopifyAddToCart,
-  updateCartLines as shopifyUpdateCartLines,
-  removeFromCart as shopifyRemoveFromCart,
-} from '@/lib/queries/cart';
 
 interface CartContextType {
   cart: Cart | null;
@@ -30,6 +23,51 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+async function readCartResponse(response: Response): Promise<Cart | null> {
+  if (!response.ok) {
+    throw new Error(`Cart request failed: ${response.status}`);
+  }
+
+  const json = (await response.json()) as { cart: Cart | null };
+  return json.cart;
+}
+
+async function createCartRequest(): Promise<Cart> {
+  const cart = await readCartResponse(
+    await fetch('/api/cart', {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+    })
+  );
+
+  if (!cart) throw new Error('Cart create response did not include a cart');
+  return cart;
+}
+
+async function getCartRequest(cartId: string): Promise<Cart | null> {
+  return readCartResponse(
+    await fetch(`/api/cart?id=${encodeURIComponent(cartId)}`, {
+      headers: { Accept: 'application/json' },
+    })
+  );
+}
+
+async function mutateCartLines(body: unknown): Promise<Cart> {
+  const cart = await readCartResponse(
+    await fetch('/api/cart/lines', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+  );
+
+  if (!cart) throw new Error('Cart mutation response did not include a cart');
+  return cart;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [cartId, setCartId] = useState<string | null>(null);
@@ -42,7 +80,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const storedId = localStorage.getItem('lp_cart_id');
         if (storedId) {
-          const existing = await shopifyGetCart(storedId);
+          const existing = await getCartRequest(storedId);
           if (existing) {
             if (isMounted) {
               setCart(existing);
@@ -52,7 +90,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
         }
         // No stored cart or cart not found — create a new one
-        const newCart = await shopifyCreateCart();
+        const newCart = await createCartRequest();
         localStorage.setItem('lp_cart_id', newCart.id);
         if (isMounted) {
           setCart(newCart);
@@ -74,7 +112,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (merchandiseId: string, quantity: number) => {
       if (!cartId) return;
       try {
-        const updated = await shopifyAddToCart(cartId, [{ merchandiseId, quantity }]);
+        const updated = await mutateCartLines({
+          action: 'add',
+          cartId,
+          lines: [{ merchandiseId, quantity }],
+        });
         setCart(updated);
       } catch (err) {
         console.error('[Cart] mutation failed:', err);
@@ -88,10 +130,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!cartId) return;
       try {
         if (quantity === 0) {
-          const updated = await shopifyRemoveFromCart(cartId, [lineId]);
+          const updated = await mutateCartLines({
+            action: 'remove',
+            cartId,
+            lineIds: [lineId],
+          });
           setCart(updated);
         } else {
-          const updated = await shopifyUpdateCartLines(cartId, [{ id: lineId, quantity }]);
+          const updated = await mutateCartLines({
+            action: 'update',
+            cartId,
+            lines: [{ id: lineId, quantity }],
+          });
           setCart(updated);
         }
       } catch (err) {
@@ -105,7 +155,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (lineId: string) => {
       if (!cartId) return;
       try {
-        const updated = await shopifyRemoveFromCart(cartId, [lineId]);
+        const updated = await mutateCartLines({
+          action: 'remove',
+          cartId,
+          lineIds: [lineId],
+        });
         setCart(updated);
       } catch (err) {
         console.error('[Cart] mutation failed:', err);

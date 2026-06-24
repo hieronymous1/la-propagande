@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
 import { getBlogPostByHandle, getBlogPosts } from '@/lib/queries/blog';
 
+export const dynamic = 'force-dynamic';
+
 interface BlogPostPageProps {
   params: { handle: string };
 }

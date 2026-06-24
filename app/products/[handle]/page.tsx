@@ -4,6 +4,8 @@ import ProductDetail from '@/components/product/ProductDetail';
 import { StatusStrip } from '@/components/system/Primitives';
 import { getProductByHandle, getProducts } from '@/lib/queries/products';
 
+export const dynamic = 'force-dynamic';
+
 interface ProductPageProps {
   params: { handle: string };
 }

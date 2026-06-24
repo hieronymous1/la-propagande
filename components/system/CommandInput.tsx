@@ -61,7 +61,7 @@ export default function CommandInput({
       window.setTimeout(() => {
         if (parsed.route === '/archive') {
           window.sessionStorage.setItem('lp_archive_access', 'granted');
-          router.push('/archive?entry=terminal');
+          router.push('/archive');
           return;
         }
         router.push(parsed.route);

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
 import { getBlogPosts } from '@/lib/queries/blog';
 
+export const dynamic = 'force-dynamic';
+
 function formatDate(value: string): string {
   const date = new Date(value);
   const yy = String(date.getFullYear()).slice(-2);

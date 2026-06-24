@@ -126,6 +126,7 @@ export default function LandingOS() {
                     className="h-auto w-[min(100%,560px)] invert"
                     sizes="(max-width: 768px) calc(100vw - 44px), 560px"
                   />
+                  <h1 className="font-lp-ui m-0 text-[12px] uppercase leading-none text-[var(--lp-color-text-strong)]">LA PROPAGANDE</h1>
                   <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-muted)]">PARIS {'<->'} BEIRUT</p>
                 </div>
 

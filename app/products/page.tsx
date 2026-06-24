@@ -4,6 +4,8 @@ import ProductsCatalog from '@/components/product/ProductsCatalog';
 import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
 import { getProducts } from '@/lib/queries/products';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProductsPage() {
   const products = await getProducts();
 

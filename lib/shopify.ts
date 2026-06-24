@@ -30,6 +30,7 @@ export async function shopifyFetch<T, V = Record<string, unknown>>({
 
   const response = await fetch(endpoint, {
     method: 'POST',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
@@ -69,6 +70,7 @@ export async function shopifyAdminFetch<T, V = Record<string, unknown>>({
 
   const response = await fetch(endpoint, {
     method: 'POST',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       'X-Shopify-Access-Token': adminAccessToken,
