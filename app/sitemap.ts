@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { getSiteOrigin } from '@/lib/runtime';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://lapropagande.com';
+  const base = getSiteOrigin();
 
   return [
     { url: base, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },

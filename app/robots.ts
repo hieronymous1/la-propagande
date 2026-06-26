@@ -1,12 +1,15 @@
 import type { MetadataRoute } from 'next';
+import { getSiteOrigin } from '@/lib/runtime';
 
 export default function robots(): MetadataRoute.Robots {
+  const base = getSiteOrigin();
+
   return {
     rules: {
       userAgent: '*',
       allow: '/',
       disallow: '/archive',
     },
-    sitemap: 'https://lapropagande.com/sitemap.xml',
+    sitemap: `${base}/sitemap.xml`,
   };
 }

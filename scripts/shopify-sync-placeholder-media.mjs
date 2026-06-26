@@ -1,7 +1,7 @@
 const domain = process.env.SHOPIFY_STORE_DOMAIN;
 const accessToken = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const apiVersion = process.env.SHOPIFY_ADMIN_API_VERSION ?? process.env.SHOPIFY_API_VERSION ?? '2024-01';
-const siteOrigin = (process.env.SHOPIFY_SITE_ORIGIN ?? 'https://lapropagande.com').replace(/\/$/, '');
+const siteOrigin = (process.env.SHOPIFY_SITE_ORIGIN ?? process.env.SITE_ORIGIN ?? 'https://www.lapropagande.net').replace(/\/$/, '');
 
 if (!domain) {
   throw new Error('SHOPIFY_STORE_DOMAIN is required');

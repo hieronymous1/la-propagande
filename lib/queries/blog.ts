@@ -1,5 +1,6 @@
 import { shopifyFetch } from '../shopify';
 import { ensurePlaceholderPosts, EVENT_FALLBACK_POSTS, getFallbackArticle, normalizeArticleForTransmission } from '../site';
+import { sanitizeRichHtml, shouldUseShopifyFallbacks } from '../runtime';
 import type { Article } from '../types';
 
 const CONTENT_NAMESPACE = process.env.SHOPIFY_CONTENT_NAMESPACE || 'lap';
@@ -144,6 +145,7 @@ function withLpMeta(article: RawArticle): Article {
   return {
     ...article,
     excerpt: buildExcerpt(article),
+    contentHtml: sanitizeRichHtml(article.contentHtml),
     lpGallery,
     lpMeta: {
       transmissionId: transmissionId ?? article.lpMeta?.transmissionId ?? article.id.toUpperCase(),
@@ -174,14 +176,16 @@ export async function getBlogPosts(blogHandle: string): Promise<Article[]> {
     const data = await shopifyFetch<GetBlogPostsData, { handle: string }>({
       query,
       variables: { handle: blogHandle },
+      operationName: 'GetBlogPosts',
     });
 
-    if (!data.blog) return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
+    if (!data.blog) return shouldUseShopifyFallbacks() ? ensurePlaceholderPosts(EVENT_FALLBACK_POSTS) : [];
     const shopifyPosts = data.blog.articles.edges.map((edge) => withLpMeta(edge.node));
-    if (shopifyPosts.length === 0) return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
-    return ensurePlaceholderPosts(shopifyPosts);
-  } catch {
-    return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
+    if (shopifyPosts.length === 0) return shouldUseShopifyFallbacks() ? ensurePlaceholderPosts(EVENT_FALLBACK_POSTS) : [];
+    return shouldUseShopifyFallbacks() ? ensurePlaceholderPosts(shopifyPosts) : shopifyPosts;
+  } catch (error) {
+    if (shouldUseShopifyFallbacks()) return ensurePlaceholderPosts(EVENT_FALLBACK_POSTS);
+    throw error;
   }
 }
 
@@ -200,17 +204,19 @@ export async function getBlogPostByHandle(blogHandle: string, articleHandle: str
     const data = await shopifyFetch<GetBlogPostByHandleData, { blogHandle: string; articleHandle: string }>({
       query,
       variables: { blogHandle, articleHandle },
+      operationName: 'GetBlogPostByHandle',
     });
 
     if (!data.blog) {
       const fallback = getFallbackArticle(articleHandle);
-      return fallback ? normalizeArticleForTransmission(fallback) : null;
+      return fallback && shouldUseShopifyFallbacks() ? normalizeArticleForTransmission(fallback) : null;
     }
 
-    const article = data.blog.articleByHandle ? withLpMeta(data.blog.articleByHandle) : getFallbackArticle(articleHandle);
+    const article = data.blog.articleByHandle ? withLpMeta(data.blog.articleByHandle) : shouldUseShopifyFallbacks() ? getFallbackArticle(articleHandle) : null;
     return article ? normalizeArticleForTransmission(article) : null;
-  } catch {
+  } catch (error) {
     const fallback = getFallbackArticle(articleHandle);
-    return fallback ? normalizeArticleForTransmission(fallback) : null;
+    if (fallback && shouldUseShopifyFallbacks()) return normalizeArticleForTransmission(fallback);
+    throw error;
   }
 }

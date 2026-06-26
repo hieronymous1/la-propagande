@@ -13,7 +13,7 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run dev -- --port 3301',
+    command: 'ENABLE_SHOPIFY_FALLBACKS=true npm run dev -- --port 3301',
     url: 'http://127.0.0.1:3301',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

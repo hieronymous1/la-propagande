@@ -96,6 +96,8 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page.getByText('VARIANT / SIZE')).toBeVisible();
     await expect(page.getByRole('button', { name: 'ADD TO CART' })).toBeVisible();
     await expect(page.getByText('SUMMARY.LOG')).toBeVisible();
+    const summaryPanel = page.locator('.lp-panel', { hasText: 'SUMMARY.LOG' });
+    await expect(summaryPanel.locator('li')).toHaveCount(1);
     await expect(page.getByText('FILE NOTES', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: /> RETURN TO CATALOG/i })).toBeVisible();
 

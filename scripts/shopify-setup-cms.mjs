@@ -262,7 +262,7 @@ const PRODUCT_METAFIELDS = [
   { key: 'item_code', type: 'single_line_text_field', name: 'Item Code' },
   { key: 'status', type: 'single_line_text_field', name: 'Status' },
   { key: 'origin', type: 'single_line_text_field', name: 'Origin' },
-  { key: 'summary', type: 'multi_line_text_field', name: 'Summary' },
+  { key: 'summary', type: 'multi_line_text_field', name: 'Summary', description: 'Product page summary bullets. Enter one bullet point per line.' },
   { key: 'category', type: 'single_line_text_field', name: 'Category' },
   { key: 'subcategory', type: 'single_line_text_field', name: 'Subcategory' },
   { key: 'collection', type: 'single_line_text_field', name: 'Collection' },
@@ -270,7 +270,7 @@ const PRODUCT_METAFIELDS = [
   { key: 'featured', type: 'boolean', name: 'Featured' },
   { key: 'transmission', type: 'single_line_text_field', name: 'Transmission' },
   { key: 'drop', type: 'single_line_text_field', name: 'Drop' },
-  { key: 'file_notes', type: 'multi_line_text_field', name: 'File Notes' },
+  { key: 'file_notes', type: 'multi_line_text_field', name: 'File Notes', description: 'Optional file or graphic notes. Leave blank to hide this panel.' },
 ];
 
 const ARTICLE_METAFIELDS = [

@@ -58,7 +58,8 @@ SHOPIFY_ABOUT_METAOBJECT_TYPE=about_section
 SHOPIFY_LOCATION_METAOBJECT_TYPE=location_entry
 SHOPIFY_STOREFRONT_API_VERSION=2024-01
 SHOPIFY_ADMIN_API_VERSION=2024-01
-SHOPIFY_SITE_ORIGIN=https://lapropagande.com
+SITE_ORIGIN=https://www.lapropagande.net
+SHOPIFY_SITE_ORIGIN=https://www.lapropagande.net
 ```
 
 Notes:
@@ -72,7 +73,7 @@ Create product metafield definitions:
 - `item_code` (single_line_text_field)
 - `status` (single_line_text_field) values: `AVAILABLE`, `LIMITED`, `SOLD_OUT`, `COMING_SOON`, `ARCHIVE`
 - `origin` (single_line_text_field)
-- `summary` (multi_line_text_field)
+- `summary` (multi_line_text_field): product page summary bullets; enter one bullet point per line
 - `category` (single_line_text_field) values: `tops`, `bottoms`, `accessories`, `custom-jackets`
 - `subcategory` (single_line_text_field)
 - `collection` (single_line_text_field)
@@ -80,7 +81,7 @@ Create product metafield definitions:
 - `featured` (boolean)
 - `transmission` (single_line_text_field)
 - `drop` (single_line_text_field)
-- `file_notes` (multi_line_text_field)
+- `file_notes` (multi_line_text_field): optional; leave blank to hide the file notes panel
 
 ## 4) Article fields (namespace: `lap`)
 

@@ -1,5 +1,6 @@
 import { ARCHIVE_ENTRIES } from '../site';
 import { shopifyFetch } from '../shopify';
+import { shouldUseShopifyFallbacks } from '../runtime';
 import type { ArchiveEntry } from '../site';
 
 interface MetaobjectField {
@@ -169,6 +170,7 @@ export async function getArchiveEntries(): Promise<ArchiveEntry[]> {
     const data = await shopifyFetch<ArchiveQueryData, { type: string }>({
       query,
       variables: { type: ARCHIVE_METAOBJECT_TYPE },
+      operationName: 'GetArchiveEntries',
     });
 
     const mapped = data.metaobjects.edges
@@ -193,9 +195,10 @@ export async function getArchiveEntries(): Promise<ArchiveEntry[]> {
         behavior: entry.behavior,
       }));
 
-    if (mapped.length === 0) return ARCHIVE_ENTRIES;
+    if (mapped.length === 0) return shouldUseShopifyFallbacks() ? ARCHIVE_ENTRIES : [];
     return mapped;
-  } catch {
-    return ARCHIVE_ENTRIES;
+  } catch (error) {
+    if (shouldUseShopifyFallbacks()) return ARCHIVE_ENTRIES;
+    throw error;
   }
 }

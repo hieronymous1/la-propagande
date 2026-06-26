@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import {
+  isAllowedRequestOrigin,
+  normalizeCartId,
+  normalizeCartLines,
+  normalizeLineIds,
+} from '@/lib/cart-validation';
+import {
   addToCart,
   removeFromCart,
   updateCartLines,
 } from '@/lib/queries/cart';
+import { getSiteOrigin } from '@/lib/runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,11 +23,12 @@ interface CartLinesPayload {
   lineIds?: string[];
 }
 
-function isPositiveInteger(value: unknown): value is number {
-  return Number.isInteger(value) && Number(value) > 0;
-}
-
 export async function POST(request: Request) {
+  const origin = request.headers.get('origin');
+  if (!isAllowedRequestOrigin(origin, getSiteOrigin())) {
+    return NextResponse.json({ error: 'Request origin is not allowed' }, { status: 403 });
+  }
+
   let payload: CartLinesPayload;
 
   try {
@@ -29,51 +37,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  if (!payload.cartId) {
-    return NextResponse.json({ error: 'Cart id is required' }, { status: 400 });
+  const cartId = normalizeCartId(payload.cartId);
+
+  if (!cartId) {
+    return NextResponse.json({ error: 'A valid cart id is required' }, { status: 400 });
   }
 
   try {
     if (payload.action === 'add') {
-      const lines = (payload.lines ?? [])
-        .filter((line) => line.merchandiseId && isPositiveInteger(line.quantity))
-        .map((line) => ({
-          merchandiseId: line.merchandiseId!,
-          quantity: line.quantity!,
-        }));
+      const lines = normalizeCartLines(payload.lines) as { merchandiseId: string; quantity: number }[];
 
       if (lines.length === 0) {
         return NextResponse.json({ error: 'At least one valid line is required' }, { status: 400 });
       }
 
-      const cart = await addToCart(payload.cartId, lines);
+      const cart = await addToCart(cartId, lines);
       return NextResponse.json({ cart });
     }
 
     if (payload.action === 'update') {
-      const lines = (payload.lines ?? [])
-        .filter((line) => line.id && Number.isInteger(line.quantity) && Number(line.quantity) >= 0)
-        .map((line) => ({
-          id: line.id!,
-          quantity: line.quantity!,
-        }));
+      const lines = normalizeCartLines(payload.lines, { idKey: 'id', allowZero: true }) as { id: string; quantity: number }[];
 
       if (lines.length === 0) {
         return NextResponse.json({ error: 'At least one valid line is required' }, { status: 400 });
       }
 
-      const cart = await updateCartLines(payload.cartId, lines);
+      const cart = await updateCartLines(cartId, lines);
       return NextResponse.json({ cart });
     }
 
     if (payload.action === 'remove') {
-      const lineIds = (payload.lineIds ?? []).filter(Boolean);
+      const lineIds = normalizeLineIds(payload.lineIds) as string[];
 
       if (lineIds.length === 0) {
         return NextResponse.json({ error: 'At least one line id is required' }, { status: 400 });
       }
 
-      const cart = await removeFromCart(payload.cartId, lineIds);
+      const cart = await removeFromCart(cartId, lineIds);
       return NextResponse.json({ cart });
     }
 

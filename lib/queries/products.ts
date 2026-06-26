@@ -1,5 +1,6 @@
 import { ensurePlaceholderProducts, getFallbackProduct, splitDescriptionAndFileNotes } from '../site';
 import { shopifyFetch } from '../shopify';
+import { sanitizeRichHtml, shouldUseShopifyFallbacks } from '../runtime';
 import type { Product, ProductMeta, ProductStatus } from '../types';
 
 const CONTENT_NAMESPACE = process.env.SHOPIFY_CONTENT_NAMESPACE || 'lap';
@@ -144,12 +145,14 @@ function parseFeatured(value?: string): boolean | undefined {
 
 function withLpMeta(product: RawProduct): Product {
   const descriptionContent = splitDescriptionAndFileNotes(product.descriptionHtml, fieldValue(product.fileNotes) ?? product.lpMeta?.fileNotes);
+  const descriptionHtml = sanitizeRichHtml(descriptionContent.descriptionHtml);
+  const summary = fieldValue(product.summary) ?? product.lpMeta?.summary ?? fieldValue(product.shortDescription) ?? product.lpMeta?.shortDescription ?? '';
   const meta: ProductMeta = {
     itemCode: fieldValue(product.itemCode) ?? product.lpMeta?.itemCode ?? '',
     status: parseStatus(fieldValue(product.statusMeta)) ?? product.lpMeta?.status ?? 'AVAILABLE',
     origin: fieldValue(product.origin) ?? product.lpMeta?.origin ?? 'HYBRID NODE',
-    summary: fieldValue(product.summary) ?? product.lpMeta?.summary ?? product.description ?? '',
-    description: descriptionContent.descriptionHtml ?? product.lpMeta?.description,
+    summary,
+    description: descriptionHtml || product.lpMeta?.description,
   };
 
   const category = fieldValue(product.category);
@@ -188,7 +191,7 @@ function withLpMeta(product: RawProduct): Product {
   else if (descriptionContent.fileNotes) meta.fileNotes = descriptionContent.fileNotes;
   else if (product.lpMeta?.fileNotes) meta.fileNotes = product.lpMeta.fileNotes;
 
-  return { ...product, descriptionHtml: descriptionContent.descriptionHtml, lpMeta: meta };
+  return { ...product, descriptionHtml, lpMeta: meta };
 }
 
 export async function getProducts(): Promise<Product[]> {
@@ -205,10 +208,12 @@ export async function getProducts(): Promise<Product[]> {
   `;
 
   try {
-    const data = await shopifyFetch<GetProductsData>({ query });
-    return ensurePlaceholderProducts(data.products.edges.map((edge) => withLpMeta(edge.node)));
-  } catch {
-    return ensurePlaceholderProducts([]);
+    const data = await shopifyFetch<GetProductsData>({ query, operationName: 'GetProducts' });
+    const products = data.products.edges.map((edge) => withLpMeta(edge.node));
+    return shouldUseShopifyFallbacks() ? ensurePlaceholderProducts(products) : products;
+  } catch (error) {
+    if (shouldUseShopifyFallbacks()) return ensurePlaceholderProducts([]);
+    throw error;
   }
 }
 
@@ -225,11 +230,13 @@ export async function getProductByHandle(handle: string): Promise<Product | null
     const data = await shopifyFetch<GetProductByHandleData, { handle: string }>({
       query,
       variables: { handle },
+      operationName: 'GetProductByHandle',
     });
 
     if (data.productByHandle) return withLpMeta(data.productByHandle);
-    return getFallbackProduct(handle);
-  } catch {
-    return getFallbackProduct(handle);
+    return shouldUseShopifyFallbacks() ? getFallbackProduct(handle) : null;
+  } catch (error) {
+    if (shouldUseShopifyFallbacks()) return getFallbackProduct(handle);
+    throw error;
   }
 }

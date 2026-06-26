@@ -49,6 +49,16 @@ function formatCategory(category: string | undefined): string | undefined {
   return category.replace(/-/g, ' ').replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
+function summaryBullets(summary?: string): string[] {
+  const cleaned = summary?.trim();
+  if (!cleaned) return ['No summary available.'];
+
+  return cleaned
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*[-*•]\s*/, '').trim())
+    .filter(Boolean);
+}
+
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
   const images: ShopifyImage[] = product.images.edges.map((edge) => edge.node);
   const variants: ProductVariant[] = product.variants.edges.map((edge) => edge.node);
@@ -63,8 +73,9 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
   const { addToCart } = useCart();
 
   const price = selectedVariant?.price ?? product.priceRange.minVariantPrice;
-  const summary = product.lpMeta?.summary ?? product.description;
-  const fileNotes = product.lpMeta?.fileNotes ?? 'No dossier notes available.';
+  const summary = product.lpMeta?.summary?.trim();
+  const summaryItems = summaryBullets(summary);
+  const fileNotes = product.lpMeta?.fileNotes?.trim();
   const status = productStatus(product, selectedVariant);
   const friendlyStatus = formatStatus(status);
 
@@ -80,11 +91,12 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
   );
 
   const secondaryMeta = useMemo(
-    () => [
-      { label: 'Transmission', value: product.lpMeta?.transmission ?? 'Unset' },
-      { label: 'Drop', value: product.lpMeta?.drop ?? 'Unset' },
-      { label: 'File Notes', value: fileNotes },
-    ],
+    () =>
+      [
+        { label: 'Transmission', value: product.lpMeta?.transmission ?? 'Not available' },
+        { label: 'Drop', value: product.lpMeta?.drop ?? 'Not available' },
+        fileNotes ? { label: 'File Notes', value: fileNotes } : null,
+      ].filter((field): field is { label: string; value: string } => Boolean(field)),
     [fileNotes, product]
   );
 
@@ -159,7 +171,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
                 <span className="text-[var(--lp-color-text-main)]">{product.lpMeta?.collection ?? product.lpMeta?.drop ?? 'Unassigned'}</span> / Status:{' '}
                 <span className="text-[var(--lp-color-primary-100)]">{friendlyStatus}</span>
               </p>
-              <p className="lp-log m-0 text-[11px] text-[var(--lp-color-primary-100)]">SUMMARY: {summary}</p>
+              <p className="lp-log m-0 text-[11px] text-[var(--lp-color-primary-100)]">SUMMARY: {summaryItems.join(' / ')}</p>
 
               <p className="lp-log m-0 text-[12px] text-[var(--lp-color-primary-100)]">PRICE: {formatPrice(price.amount, price.currencyCode)}</p>
 
@@ -253,7 +265,11 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       <Panel>
         <PanelTitleBar title="SUMMARY.LOG" meta="SHORT FORM" />
         <div className="space-y-2 p-[10px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
-          <p className="m-0">{summary || 'No summary available.'}</p>
+          <ul className="m-0 list-disc space-y-1 pl-5">
+            {summaryItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       </Panel>
 
@@ -268,12 +284,14 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
         </div>
       </Panel>
 
-      <Panel>
-        <PanelTitleBar title="FILE NOTES" meta="GRAPHIC DOSSIER" />
-        <div className="space-y-2 p-[10px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
-          <p className="m-0 whitespace-pre-line">{fileNotes}</p>
-        </div>
-      </Panel>
+      {fileNotes ? (
+        <Panel>
+          <PanelTitleBar title="FILE NOTES" meta="GRAPHIC DOSSIER" />
+          <div className="space-y-2 p-[10px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
+            <p className="m-0 whitespace-pre-line">{fileNotes}</p>
+          </div>
+        </Panel>
+      ) : null}
 
       <Panel>
         <PanelTitleBar title="RELATED ITEMS" meta="NEXT DOSSIERS" />

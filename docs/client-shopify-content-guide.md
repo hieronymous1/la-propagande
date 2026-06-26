@@ -22,7 +22,7 @@ This guide is for updating the site in Shopify without touching code.
    - `item_code`: small product code shown in the UI
    - `status`: availability label such as `AVAILABLE`, `LIMITED`, or `SOLD_OUT`
    - `origin`: origin line on the product page
-   - `summary`: short dossier text
+   - `summary`: product page summary bullets; enter one bullet point per line
    - `category`: `tops`, `bottoms`, `accessories`, or `custom-jackets`
    - `subcategory`: smaller category like `hoodies` or `tees`
    - `collection`: collection name
@@ -30,7 +30,7 @@ This guide is for updating the site in Shopify without touching code.
    - `featured`: feature flag
    - `transmission`: optional transmission label
    - `drop`: optional drop label
-   - `file_notes`: optional extra product notes
+   - `file_notes`: optional extra product notes; leave blank to hide the file notes panel
 5. Click `Save`.
 
 ### Replace or add product images

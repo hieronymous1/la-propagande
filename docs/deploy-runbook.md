@@ -4,6 +4,7 @@
 - `SHOPIFY_STORE_DOMAIN`
 - `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
 - `SHOPIFY_ADMIN_API_ACCESS_TOKEN`
+- `SITE_ORIGIN`
 - `NEXT_PUBLIC_FORMSPREE_ID`
 - `NEXT_PUBLIC_CUSTOM_JACKETS_FORM_ENDPOINT` (optional override; defaults to `https://formsubmit.co/ajax/lapropagandeparisbey@outlook.com`)
 
@@ -29,8 +30,8 @@
 7. Confirm smoke tests pass in CI (`npm run test:smoke`).
 
 ## SEO/Indexing Checks
-1. Confirm `https://lapropagande.com/sitemap.xml` returns 200.
-2. Confirm `https://lapropagande.com/robots.txt` returns expected rules.
+1. Confirm `https://www.lapropagande.net/sitemap.xml` returns 200.
+2. Confirm `https://www.lapropagande.net/robots.txt` returns expected rules.
 3. Spot-check metadata title/description on home and products.
 
 ## Rollback

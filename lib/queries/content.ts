@@ -1,5 +1,6 @@
 import { ABOUT_FALLBACK_SECTIONS, LOCATION_FALLBACK_ENTRIES } from '../site';
 import { shopifyFetch } from '../shopify';
+import { shouldUseShopifyFallbacks } from '../runtime';
 import type { AboutSection, LocationEntry } from '../types';
 
 interface MetaobjectField {
@@ -69,6 +70,7 @@ async function getMetaobjects(type: string): Promise<MetaobjectNode[]> {
   const data = await shopifyFetch<MetaobjectsQueryData, { type: string }>({
     query,
     variables: { type },
+    operationName: `GetMetaobjects:${type}`,
   });
 
   return data.metaobjects.edges.map((edge) => edge.node);
@@ -97,9 +99,10 @@ export async function getAboutSections(): Promise<AboutSection[]> {
         body: section.body,
       }));
 
-    return sections.length > 0 ? sections : ABOUT_FALLBACK_SECTIONS;
-  } catch {
-    return ABOUT_FALLBACK_SECTIONS;
+    return sections.length > 0 ? sections : shouldUseShopifyFallbacks() ? ABOUT_FALLBACK_SECTIONS : [];
+  } catch (error) {
+    if (shouldUseShopifyFallbacks()) return ABOUT_FALLBACK_SECTIONS;
+    throw error;
   }
 }
 
@@ -135,8 +138,9 @@ export async function getLocationEntries(): Promise<LocationEntry[]> {
         hours: entry.hours,
       }));
 
-    return entries.length > 0 ? entries : LOCATION_FALLBACK_ENTRIES;
-  } catch {
-    return LOCATION_FALLBACK_ENTRIES;
+    return entries.length > 0 ? entries : shouldUseShopifyFallbacks() ? LOCATION_FALLBACK_ENTRIES : [];
+  } catch (error) {
+    if (shouldUseShopifyFallbacks()) return LOCATION_FALLBACK_ENTRIES;
+    throw error;
   }
 }

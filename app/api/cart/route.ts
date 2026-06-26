@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server';
+import { isAllowedRequestOrigin, normalizeCartId } from '@/lib/cart-validation';
 import { createCart, getCart } from '@/lib/queries/cart';
+import { getSiteOrigin } from '@/lib/runtime';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+function rejectCrossSite(request: Request): NextResponse | null {
+  const origin = request.headers.get('origin');
+  if (isAllowedRequestOrigin(origin, getSiteOrigin())) return null;
+  return NextResponse.json({ error: 'Request origin is not allowed' }, { status: 403 });
+}
+
+export async function POST(request: Request) {
+  const originError = rejectCrossSite(request);
+  if (originError) return originError;
+
   try {
     const cart = await createCart();
     return NextResponse.json({ cart });
@@ -15,10 +26,10 @@ export async function POST() {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const id = url.searchParams.get('id');
+  const id = normalizeCartId(url.searchParams.get('id'));
 
   if (!id) {
-    return NextResponse.json({ error: 'Cart id is required' }, { status: 400 });
+    return NextResponse.json({ error: 'A valid cart id is required' }, { status: 400 });
   }
 
   try {
