@@ -49,8 +49,10 @@ const REQUIRED_ADMIN_SCOPES = [
   'write_metaobject_definitions',
   'read_metaobjects',
   'write_metaobjects',
-  'read_metafield_definitions',
-  'write_metafield_definitions',
+  'read_products',
+  'write_products',
+  'read_content',
+  'write_content',
 ];
 
 function loadEnvFile(path = resolve(projectRoot, '.env.local')) {
@@ -117,6 +119,29 @@ async function getAccessScopes({ domain, token, apiVersion }) {
 
   const json = await response.json();
   return (json.access_scopes ?? []).map((scope) => scope.handle);
+}
+
+async function getClientCredentialsAccessToken({ domain, clientId, clientSecret }) {
+  if (!clientId || !clientSecret) return null;
+
+  const response = await fetch(`https://${domain}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`${response.status} ${response.statusText} ${body}`);
+  }
+
+  const json = await response.json();
+  if (!json.access_token) throw new Error('Client credentials response did not include an access_token');
+  return json.access_token;
 }
 
 function fieldHasValue(field) {
@@ -316,7 +341,12 @@ async function main() {
 
   const domain = requiredEnv('SHOPIFY_STORE_DOMAIN');
   const storefrontToken = requiredEnv('SHOPIFY_STOREFRONT_ACCESS_TOKEN');
-  const adminToken = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+  const clientId = process.env.SHOPIFY_APP_CLIENT_ID ?? process.env.SHOPIFY_CLIENT_ID;
+  const clientSecret = process.env.SHOPIFY_APP_CLIENT_SECRET ?? process.env.SHOPIFY_CLIENT_SECRET;
+  let adminToken =
+    clientId && clientSecret
+      ? null
+      : process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
   const namespace = process.env.SHOPIFY_CONTENT_NAMESPACE ?? 'lap';
   const storefrontApiVersion = process.env.SHOPIFY_STOREFRONT_API_VERSION ?? process.env.SHOPIFY_API_VERSION ?? '2024-01';
   const adminApiVersion = process.env.SHOPIFY_ADMIN_API_VERSION ?? process.env.SHOPIFY_API_VERSION ?? '2024-01';
@@ -326,7 +356,7 @@ async function main() {
   const blogHandle = process.env.SHOPIFY_BLOG_HANDLE ?? 'news';
 
   console.log(`Shopify CMS verification -> ${domain}`);
-  console.log(`Env: storefront token ${envFlag('SHOPIFY_STOREFRONT_ACCESS_TOKEN')}, admin token ${adminToken ? 'set' : 'missing'}, namespace ${namespace}`);
+  console.log(`Env: storefront token ${envFlag('SHOPIFY_STOREFRONT_ACCESS_TOKEN')}, admin credentials ${adminToken || (clientId && clientSecret) ? 'set' : 'missing'}, namespace ${namespace}`);
 
   const storefront = await verifyStorefront({
     domain,
@@ -353,12 +383,19 @@ async function main() {
   printCoverage(storefront.coverage);
 
   if (!adminToken) {
+    try {
+      adminToken = await getClientCredentialsAccessToken({ domain, clientId, clientSecret });
+      console.log('\nAdmin API');
+      console.log('  using token generated from Shopify app client credentials');
+    } catch (error) {
+      console.log('\nAdmin API');
+      console.log(`  skipped: unable to get Admin token from client credentials: ${error.message}`);
+      return;
+    }
+  } else {
     console.log('\nAdmin API');
-    console.log('  skipped: admin token missing');
-    return;
   }
 
-  console.log('\nAdmin API');
   let scopes;
   try {
     scopes = await getAccessScopes({ domain, token: adminToken, apiVersion: adminApiVersion });
@@ -396,8 +433,8 @@ async function main() {
     if (error.message.includes('read_metaobject_definitions')) {
       console.log('  required Admin token scope: read_metaobject_definitions');
     }
-    if (error.message.includes('read_metafield_definitions')) {
-      console.log('  required Admin token scope: read_metafield_definitions');
+    if (error.message.includes('metafield')) {
+      console.log('  required Admin token scopes for metafield definitions: read/write access to the owner resource, e.g. read_products/write_products and read_content/write_content');
     }
   }
 }

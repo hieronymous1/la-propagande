@@ -108,6 +108,7 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   const [sortMode, setSortMode] = useState<SortMode>('latest');
   const [collection, setCollection] = useState<string>('all');
   const [query, setQuery] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
 
   useEffect(() => {
@@ -205,9 +206,21 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   return (
     <div className="space-y-3">
       <div className="lp-grid-2">
-        <Panel className="md:max-w-[290px]">
-          <PanelTitleBar title="STORE FILTERS" meta="CATALOG CONTROLS" />
-          <div className="space-y-3 p-[10px]">
+        <div className="order-2 space-y-2 md:order-1 md:max-w-[290px]">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="lp-focus-ring lp-log flex w-full items-center justify-between border border-[var(--lp-color-border-default)] px-3 py-3 text-[10px] text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)] md:hidden"
+            aria-expanded={filtersOpen}
+            aria-controls="catalog-filters"
+          >
+            <span>FILTERS / {activeFilterCount} ACTIVE</span>
+            <span>{filtersOpen ? 'CLOSE' : 'OPEN'}</span>
+          </button>
+          <div id="catalog-filters" className={filtersOpen ? 'block' : 'hidden md:block'}>
+            <Panel>
+              <PanelTitleBar title="STORE FILTERS" meta="CATALOG CONTROLS" />
+              <div className="space-y-3 p-[10px]">
             <div className="space-y-2">
               <p className="lp-log m-0 text-[10px]">SEARCH</p>
               <input
@@ -366,10 +379,12 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
             >
               RESET FILTERS
             </button>
+              </div>
+            </Panel>
           </div>
-        </Panel>
+        </div>
 
-        <div className="space-y-3">
+        <div className="order-1 space-y-3 md:order-2">
           <StatusStrip>CATALOG STATUS: ACTIVE / ITEMS: {filteredProducts.length} / FILTERS: {activeFilterCount}</StatusStrip>
           <Panel>
             <PanelTitleBar title="STORE.exe" meta="INVENTORY DOSSIER" />

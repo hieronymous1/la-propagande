@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { Product, ProductVariant, ShopifyImage } from '@/lib/types';
 import { useCart } from '@/components/store/CartProvider';
 import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
+import { getProductCatalogMeta } from '@/lib/site';
 
 interface ProductDetailProps {
   product: Product;
@@ -40,7 +41,7 @@ function formatStatus(status: ReturnType<typeof productStatus>): string {
 }
 
 function itemCode(product: Product): string {
-  return product.lpMeta?.itemCode ?? `LP-${product.handle.slice(0, 8).toUpperCase()}`;
+  return product.lpMeta?.itemCode?.trim() || `LP-${product.handle.slice(0, 8).toUpperCase()}`;
 }
 
 function formatCategory(category: string | undefined): string | undefined {
@@ -72,8 +73,10 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   const { addToCart } = useCart();
 
+  const catalogMeta = useMemo(() => getProductCatalogMeta(product), [product]);
   const price = selectedVariant?.price ?? product.priceRange.minVariantPrice;
-  const summary = product.lpMeta?.summary?.trim();
+  const summary = (product.lpMeta?.summary ?? catalogMeta.shortDescription).trim();
+  const shortDescription = (product.lpMeta?.shortDescription ?? catalogMeta.shortDescription).trim();
   const summaryItems = summaryBullets(summary);
   const fileNotes = product.lpMeta?.fileNotes?.trim();
   const status = productStatus(product, selectedVariant);
@@ -81,13 +84,13 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   const metadata = useMemo(
     () => [
-      { label: 'Collection', value: product.lpMeta?.collection ?? product.lpMeta?.drop ?? 'Unassigned' },
-      { label: 'Category', value: formatCategory(product.lpMeta?.category) ?? product.productType ?? 'Unassigned' },
+      { label: 'Collection', value: product.lpMeta?.collection ?? product.lpMeta?.drop ?? catalogMeta.collection ?? 'Unassigned' },
+      { label: 'Category', value: formatCategory(product.lpMeta?.category ?? catalogMeta.category) ?? product.productType ?? 'Unassigned' },
       { label: 'Item Code', value: itemCode(product) },
       { label: 'Status', value: friendlyStatus },
       { label: 'Origin', value: product.lpMeta?.origin ?? 'Hybrid Node' },
     ],
-    [product, friendlyStatus]
+    [catalogMeta, product, friendlyStatus]
   );
 
   const secondaryMeta = useMemo(
@@ -168,9 +171,12 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
               <h1 className="font-lp-ui m-0 text-[30px] uppercase leading-[1.02] text-[var(--lp-color-text-strong)] md:text-[34px]">{product.title}</h1>
               <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-muted)]">
                 Collection:{' '}
-                <span className="text-[var(--lp-color-text-main)]">{product.lpMeta?.collection ?? product.lpMeta?.drop ?? 'Unassigned'}</span> / Status:{' '}
+                <span className="text-[var(--lp-color-text-main)]">{product.lpMeta?.collection ?? product.lpMeta?.drop ?? catalogMeta.collection ?? 'Unassigned'}</span> / Status:{' '}
                 <span className="text-[var(--lp-color-primary-100)]">{friendlyStatus}</span>
               </p>
+              {shortDescription ? (
+                <p className="m-0 text-[14px] leading-[1.45] text-[var(--lp-color-text-main)]">{shortDescription}</p>
+              ) : null}
               <p className="lp-log m-0 text-[11px] text-[var(--lp-color-primary-100)]">SUMMARY: {summaryItems.join(' / ')}</p>
 
               <p className="lp-log m-0 text-[12px] text-[var(--lp-color-primary-100)]">PRICE: {formatPrice(price.amount, price.currencyCode)}</p>

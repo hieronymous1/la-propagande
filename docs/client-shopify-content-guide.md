@@ -18,20 +18,30 @@ This guide is for updating the site in Shopify without touching code.
    - `Description`: main product text on the product page
    - `Media`: product photos
    - `Pricing`: product price
-4. Scroll to the LA PROPAGANDE metafields and update as needed:
-   - `item_code`: small product code shown in the UI
-   - `status`: availability label such as `AVAILABLE`, `LIMITED`, or `SOLD_OUT`
-   - `origin`: origin line on the product page
-   - `summary`: product page summary bullets; enter one bullet point per line
-   - `category`: `tops`, `bottoms`, `accessories`, or `custom-jackets`
-   - `subcategory`: smaller category like `hoodies` or `tees`
-   - `collection`: collection name
-   - `short_description`: short support text
-   - `featured`: feature flag
-   - `transmission`: optional transmission label
-   - `drop`: optional drop label
-   - `file_notes`: optional extra product notes; leave blank to hide the file notes panel
-5. Click `Save`.
+4. Add product tags for metadata. Use one tag per field:
+   - `lp_item_code: LP-001`
+   - `lp_status: Available`
+   - `lp_origin: Lebanon`
+   - `lp_category: Tops`
+   - `lp_subcategory: Tees`
+   - `lp_collection: WAKE UP!`
+   - `lp_transmission: F*CK THE SYSTEM`
+   - `lp_drop: 01`
+   - `lp_featured: yes`
+5. For summary, short description, and file notes, add this block at the bottom of the normal product `Description` field:
+
+```text
+LP DATA:
+summary: In between regular & relaxed fit
+short_description: In between regular & relaxed fit
+file_notes: F*CK THE SYSTEM
+END LP DATA
+```
+
+The site removes this block from the public long description and uses it only for product-detail fields.
+6. Click `Save`.
+
+Note: LA PROPAGANDE metafields are still supported when Shopify exposes them to the Storefront API. Product tags and the `LP DATA` description block are the reliable editing path that works with the current Shopify token.
 
 ### Replace or add product images
 1. Open the product.

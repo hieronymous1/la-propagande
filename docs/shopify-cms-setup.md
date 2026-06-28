@@ -39,8 +39,15 @@ The Admin API token must include:
 - `write_metaobject_definitions`
 - `read_metaobjects`
 - `write_metaobjects`
-- `read_metafield_definitions`
-- `write_metafield_definitions`
+- `read_products`
+- `write_products`
+- `read_content`
+- `write_content`
+
+Shopify does not expose separate `read_metafield_definitions` or
+`write_metafield_definitions` scopes. Metafield definition access is based on
+the namespace and owner resource type. This setup creates product and article
+metafield definitions, so it needs product and content access.
 
 ## 2) Environment variables
 
@@ -52,6 +59,10 @@ SHOPIFY_STOREFRONT_ACCESS_TOKEN=...
 SHOPIFY_ADMIN_API_ACCESS_TOKEN=...
 # Optional compatibility alias:
 # SHOPIFY_ADMIN_ACCESS_TOKEN=...
+# Shopify Dev Dashboard custom app credentials can be used instead of a
+# copyable Admin API token:
+# SHOPIFY_APP_CLIENT_ID=...
+# SHOPIFY_APP_CLIENT_SECRET=...
 SHOPIFY_CONTENT_NAMESPACE=lap
 SHOPIFY_ARCHIVE_METAOBJECT_TYPE=archive_entry
 SHOPIFY_ABOUT_METAOBJECT_TYPE=about_section
@@ -64,7 +75,7 @@ SHOPIFY_SITE_ORIGIN=https://www.lapropagande.net
 
 Notes:
 - `SHOPIFY_STOREFRONT_ACCESS_TOKEN` is required for runtime storefront queries.
-- `SHOPIFY_ADMIN_API_ACCESS_TOKEN` (or compatibility alias `SHOPIFY_ADMIN_ACCESS_TOKEN`) is required for creating definitions/content in Admin API.
+- `SHOPIFY_ADMIN_API_ACCESS_TOKEN` (or compatibility alias `SHOPIFY_ADMIN_ACCESS_TOKEN`) is required for creating definitions/content in Admin API. For Shopify Dev Dashboard custom apps, use `SHOPIFY_APP_CLIENT_ID` and `SHOPIFY_APP_CLIENT_SECRET` instead; the setup scripts will generate the Admin access token with Shopify's client credentials grant.
 - The Storefront token must be allowed to read products and blog content. Custom metafield and metaobject definitions must have Storefront access set to `PUBLIC_READ`; `npm run shopify:setup-cms` handles that.
 
 ## 3) Product fields (namespace: `lap`)

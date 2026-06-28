@@ -34,8 +34,12 @@ function loadEnvFile(path = resolve(projectRoot, '.env.local')) {
 loadEnvFile();
 
 const domain = process.env.SHOPIFY_STORE_DOMAIN;
-const accessToken =
-  process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+const clientId = process.env.SHOPIFY_APP_CLIENT_ID ?? process.env.SHOPIFY_CLIENT_ID;
+const clientSecret = process.env.SHOPIFY_APP_CLIENT_SECRET ?? process.env.SHOPIFY_CLIENT_SECRET;
+let accessToken =
+  clientId && clientSecret
+    ? null
+    : process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const apiVersion = process.env.SHOPIFY_ADMIN_API_VERSION ?? '2024-01';
 const contentNamespace = process.env.SHOPIFY_CONTENT_NAMESPACE ?? 'lap';
 const aboutType = process.env.SHOPIFY_ABOUT_METAOBJECT_TYPE ?? 'about_section';
@@ -43,7 +47,9 @@ const locationType = process.env.SHOPIFY_LOCATION_METAOBJECT_TYPE ?? 'location_e
 const archiveType = process.env.SHOPIFY_ARCHIVE_METAOBJECT_TYPE ?? 'archive_entry';
 
 if (!domain) throw new Error('SHOPIFY_STORE_DOMAIN is required');
-if (!accessToken) throw new Error('SHOPIFY_ADMIN_API_ACCESS_TOKEN is required');
+if (!accessToken && (!clientId || !clientSecret)) {
+  throw new Error('SHOPIFY_ADMIN_API_ACCESS_TOKEN or SHOPIFY_APP_CLIENT_ID/SHOPIFY_APP_CLIENT_SECRET is required');
+}
 
 const endpoint = `https://${domain}/admin/api/${apiVersion}/graphql.json`;
 const accessScopesEndpoint = `https://${domain}/admin/oauth/access_scopes.json`;
@@ -53,8 +59,10 @@ const REQUIRED_ADMIN_SCOPES = [
   'write_metaobject_definitions',
   'read_metaobjects',
   'write_metaobjects',
-  'read_metafield_definitions',
-  'write_metafield_definitions',
+  'read_products',
+  'write_products',
+  'read_content',
+  'write_content',
 ];
 
 async function adminFetch(query, variables = {}) {
@@ -67,6 +75,29 @@ async function adminFetch(query, variables = {}) {
   const json = await res.json();
   if (json.errors?.length) throw new Error(json.errors.map((e) => e.message).join(', '));
   return json.data;
+}
+
+async function getClientCredentialsAccessToken() {
+  if (!clientId || !clientSecret) return null;
+
+  const res = await fetch(`https://${domain}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Unable to get Admin access token from client credentials: ${res.status} ${res.statusText} ${body}`);
+  }
+
+  const json = await res.json();
+  if (!json.access_token) throw new Error('Client credentials response did not include an access_token');
+  return json.access_token;
 }
 
 async function getAccessScopes() {
@@ -456,6 +487,11 @@ async function setupArchiveMetaobject() {
 
 async function main() {
   console.log(`Shopify CMS setup → ${domain}`);
+  const generatedToken = await getClientCredentialsAccessToken();
+  if (generatedToken) {
+    accessToken = generatedToken;
+    console.log('Using Admin access token generated from Shopify app client credentials.');
+  }
   await assertRequiredScopes();
   await setupAboutMetaobject();
   await setupLocationMetaobject();

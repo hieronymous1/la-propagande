@@ -1,7 +1,8 @@
 import { ensurePlaceholderProducts, getFallbackProduct, splitDescriptionAndFileNotes } from '../site';
 import { shopifyFetch } from '../shopify';
 import { sanitizeRichHtml, shouldUseShopifyFallbacks } from '../runtime';
-import type { Product, ProductMeta, ProductStatus } from '../types';
+import { extractProductFallbackMeta, parseFeatured, parseProductCategory, parseProductStatus } from '../product-meta';
+import type { Product, ProductCategory, ProductMeta, ProductStatus } from '../types';
 
 const CONTENT_NAMESPACE = process.env.SHOPIFY_CONTENT_NAMESPACE || 'lap';
 
@@ -11,6 +12,7 @@ const PRODUCT_FIELDS = `
   handle
   description
   descriptionHtml
+  tags
   productType
   priceRange {
     minVariantPrice {
@@ -92,6 +94,7 @@ interface MetafieldValue {
 }
 
 type RawProduct = Product & {
+  tags?: string[];
   itemCode?: MetafieldValue | null;
   statusMeta?: MetafieldValue | null;
   origin?: MetafieldValue | null;
@@ -116,77 +119,100 @@ interface GetProductByHandleData {
   productByHandle: RawProduct | null;
 }
 
+interface ProductFallbackMeta {
+  itemCode?: string;
+  status?: string;
+  origin?: string;
+  summary?: string;
+  category?: string;
+  subcategory?: string;
+  collection?: string;
+  shortDescription?: string;
+  featured?: string;
+  transmission?: string;
+  drop?: string;
+  fileNotes?: string;
+}
+
+interface ProductFallbackResult {
+  descriptionHtml: string;
+  meta: ProductFallbackMeta;
+}
+
+const readProductFallbackMeta = extractProductFallbackMeta as (input: {
+  descriptionHtml: string;
+  tags: string[];
+}) => ProductFallbackResult;
+
 function fieldValue(field?: MetafieldValue | null): string | undefined {
   return field?.value?.trim() || undefined;
 }
 
-function parseStatus(value?: string): ProductStatus | undefined {
-  if (!value) return undefined;
-  const normalized = value.trim().toUpperCase().replace(/[\s-]+/g, '_');
-  if (
-    normalized === 'AVAILABLE' ||
-    normalized === 'LIMITED' ||
-    normalized === 'SOLD_OUT' ||
-    normalized === 'COMING_SOON' ||
-    normalized === 'ARCHIVE'
-  ) {
-    return normalized;
-  }
-  return undefined;
-}
-
-function parseFeatured(value?: string): boolean | undefined {
-  if (!value) return undefined;
-  const normalized = value.trim().toLowerCase();
-  if (normalized === 'true' || normalized === '1' || normalized === 'yes') return true;
-  if (normalized === 'false' || normalized === '0' || normalized === 'no') return false;
-  return undefined;
+function hasAvailableVariant(product: RawProduct): boolean {
+  return product.variants.edges.some((edge) => edge.node.availableForSale);
 }
 
 function withLpMeta(product: RawProduct): Product {
-  const descriptionContent = splitDescriptionAndFileNotes(product.descriptionHtml, fieldValue(product.fileNotes) ?? product.lpMeta?.fileNotes);
+  const fallback = readProductFallbackMeta({
+    descriptionHtml: product.descriptionHtml,
+    tags: product.tags ?? [],
+  });
+  const descriptionContent = splitDescriptionAndFileNotes(
+    fallback.descriptionHtml,
+    fieldValue(product.fileNotes) ?? fallback.meta.fileNotes ?? product.lpMeta?.fileNotes
+  );
   const descriptionHtml = sanitizeRichHtml(descriptionContent.descriptionHtml);
-  const summary = fieldValue(product.summary) ?? product.lpMeta?.summary ?? fieldValue(product.shortDescription) ?? product.lpMeta?.shortDescription ?? '';
+  const summary =
+    fieldValue(product.summary) ??
+    fallback.meta.summary ??
+    product.lpMeta?.summary ??
+    fieldValue(product.shortDescription) ??
+    fallback.meta.shortDescription ??
+    product.lpMeta?.shortDescription ??
+    '';
   const meta: ProductMeta = {
-    itemCode: fieldValue(product.itemCode) ?? product.lpMeta?.itemCode ?? '',
-    status: parseStatus(fieldValue(product.statusMeta)) ?? product.lpMeta?.status ?? 'AVAILABLE',
-    origin: fieldValue(product.origin) ?? product.lpMeta?.origin ?? 'HYBRID NODE',
+    itemCode: fieldValue(product.itemCode) ?? fallback.meta.itemCode ?? product.lpMeta?.itemCode ?? `LP-${product.handle.slice(0, 8).toUpperCase()}`,
+    status:
+      (parseProductStatus(fieldValue(product.statusMeta) ?? fallback.meta.status) as ProductStatus | undefined) ??
+      product.lpMeta?.status ??
+      (hasAvailableVariant(product) ? 'AVAILABLE' : 'SOLD_OUT'),
+    origin: fieldValue(product.origin) ?? fallback.meta.origin ?? product.lpMeta?.origin ?? 'HYBRID NODE',
     summary,
     description: descriptionHtml || product.lpMeta?.description,
   };
 
-  const category = fieldValue(product.category);
-  if (category === 'tops' || category === 'bottoms' || category === 'accessories' || category === 'custom-jackets') {
+  const category = parseProductCategory(fieldValue(product.category) ?? fallback.meta.category) as ProductCategory | undefined;
+  if (category) {
     meta.category = category;
   } else if (product.lpMeta?.category) {
     meta.category = product.lpMeta.category;
   }
 
-  const subcategory = fieldValue(product.subcategory);
+  const subcategory = fieldValue(product.subcategory) ?? fallback.meta.subcategory;
   if (subcategory) meta.subcategory = subcategory;
   else if (product.lpMeta?.subcategory) meta.subcategory = product.lpMeta.subcategory;
 
-  const collection = fieldValue(product.collection);
+  const collection = fieldValue(product.collection) ?? fallback.meta.collection;
   if (collection) meta.collection = collection;
   else if (product.lpMeta?.collection) meta.collection = product.lpMeta.collection;
 
-  const shortDescription = fieldValue(product.shortDescription);
+  const shortDescription = fieldValue(product.shortDescription) ?? fallback.meta.shortDescription;
   if (shortDescription) meta.shortDescription = shortDescription;
   else if (product.lpMeta?.shortDescription) meta.shortDescription = product.lpMeta.shortDescription;
 
-  const featured = parseFeatured(fieldValue(product.featured));
+  const featured = parseFeatured(fieldValue(product.featured) ?? fallback.meta.featured);
   if (featured !== undefined) meta.featured = featured;
   else if (product.lpMeta?.featured !== undefined) meta.featured = product.lpMeta.featured;
 
-  const transmission = fieldValue(product.transmission);
+  const transmission = fieldValue(product.transmission) ?? fallback.meta.transmission;
   if (transmission) meta.transmission = transmission;
   else if (product.lpMeta?.transmission) meta.transmission = product.lpMeta.transmission;
 
-  const drop = fieldValue(product.drop);
+  const drop = fieldValue(product.drop) ?? fallback.meta.drop;
   if (drop) meta.drop = drop;
   else if (product.lpMeta?.drop) meta.drop = product.lpMeta.drop;
 
-  const fileNotes = fieldValue(product.fileNotes);
+  const fileNotes = fieldValue(product.fileNotes) ?? fallback.meta.fileNotes;
   if (fileNotes) meta.fileNotes = fileNotes;
   else if (descriptionContent.fileNotes) meta.fileNotes = descriptionContent.fileNotes;
   else if (product.lpMeta?.fileNotes) meta.fileNotes = product.lpMeta.fileNotes;

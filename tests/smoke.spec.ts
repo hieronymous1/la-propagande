@@ -84,6 +84,7 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page.getByText('METADATA.BLOCK')).toBeVisible();
     await expect(page.getByText('DESCRIPTION.LOG')).toBeVisible();
     await expect(page.getByText('RELATED ITEMS')).toBeVisible();
+    await expect(page.getByText('Daily field tee with route print.')).toBeVisible();
 
     const metadataPanel = page.locator('.lp-panel', { hasText: 'METADATA.BLOCK' });
     await expect(metadataPanel.getByText(/Item Code:/i)).toBeVisible();
