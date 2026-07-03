@@ -219,7 +219,7 @@ async function listMetafieldDefinitions(ownerType, namespace) {
   const data = await adminFetch(`
     query ListDefs($ownerType: MetafieldOwnerType!, $namespace: String!) {
       metafieldDefinitions(first: 100, ownerType: $ownerType, namespace: $namespace) {
-        edges { node { id key namespace type { name } access { storefront } } }
+        edges { node { id key namespace ownerType type { name } access { storefront } } }
       }
     }`, { ownerType, namespace });
   return data.metafieldDefinitions.edges.map((e) => e.node);
@@ -256,14 +256,16 @@ async function updateMetafieldStorefrontAccess(definition) {
   if (definition.access?.storefront === 'PUBLIC_READ') return false;
 
   const data = await adminFetch(`
-    mutation UpdateMfd($id: ID!, $def: MetafieldDefinitionUpdateInput!) {
-      metafieldDefinitionUpdate(id: $id, definition: $def) {
+    mutation UpdateMfd($def: MetafieldDefinitionUpdateInput!) {
+      metafieldDefinitionUpdate(definition: $def) {
         updatedDefinition { id key namespace access { storefront } }
         userErrors { field message }
       }
     }`, {
-    id: definition.id,
     def: {
+      ownerType: definition.ownerType,
+      namespace: definition.namespace,
+      key: definition.key,
       access: {
         storefront: 'PUBLIC_READ',
       },

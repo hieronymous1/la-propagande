@@ -113,6 +113,11 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
     }
   }
 
+  function handleVariantChange(variantId: string) {
+    const nextVariant = variants.find((variant) => variant.id === variantId) ?? null;
+    setSelectedVariant(nextVariant);
+  }
+
   return (
     <div className="space-y-3">
       <StatusStrip>ITEM DOSSIER / HANDLE: {product.handle.toUpperCase()} / STATUS: {friendlyStatus.toUpperCase()} / PRICE: {formatPrice(price.amount, price.currencyCode)}</StatusStrip>
@@ -183,23 +188,26 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
               <div className="space-y-2">
                 <p className="lp-log m-0 text-[10px]">VARIANT / SIZE</p>
-                <div className="flex flex-wrap gap-1">
-                  {variants.map((variant) => (
-                    <button
-                      key={variant.id}
-                      onClick={() => variant.availableForSale && setSelectedVariant(variant)}
-                      disabled={!variant.availableForSale}
-                      className={`lp-focus-ring lp-log border px-2 py-[5px] text-[10px] ${
-                        !variant.availableForSale
-                          ? 'cursor-not-allowed border-[var(--lp-color-border-subtle)] text-[var(--lp-color-text-dim)]'
-                          : selectedVariant?.id === variant.id
-                            ? 'border-[var(--lp-color-border-accent-bright)] text-[var(--lp-color-primary-100)]'
-                            : 'border-[var(--lp-color-border-default)] hover:border-[var(--lp-color-border-accent)]'
-                      }`}
-                    >
-                      {variant.title}
-                    </button>
-                  ))}
+                <div className="relative">
+                  <select
+                    aria-label="Select variant"
+                    value={selectedVariant?.id ?? ''}
+                    onChange={(event) => handleVariantChange(event.target.value)}
+                    className="lp-focus-ring lp-log h-11 w-full appearance-none border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-0)] px-3 pr-9 text-[10px] uppercase text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)]"
+                  >
+                    {variants.map((variant) => (
+                      <option
+                        key={variant.id}
+                        value={variant.id}
+                        disabled={!variant.availableForSale}
+                      >
+                        {variant.title}{variant.availableForSale ? '' : ' / SOLD OUT'}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[var(--lp-color-primary-100)]">
+                    v
+                  </span>
                 </div>
               </div>
 
