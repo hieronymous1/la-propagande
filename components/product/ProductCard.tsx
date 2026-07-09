@@ -79,39 +79,39 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        <div className="space-y-[7px] p-[10px]">
-          <p className="m-0 font-lp-ui text-[18px] uppercase leading-[1.08] text-[var(--lp-color-text-strong)]">{product.title}</p>
+        <div className="space-y-[5px] p-[10px] sm:space-y-[7px]">
+          <p className="m-0 font-lp-ui text-[15px] uppercase leading-[1.08] text-[var(--lp-color-text-strong)] sm:text-[18px]">{product.title}</p>
 
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p className="lp-log m-0 min-w-0 text-[10px] text-[var(--lp-color-text-muted)]">{categoryLine || formatMetaLabel(meta.category)}</p>
-            <span className={`lp-log border px-1 py-[2px] text-[10px] ${statusClass(meta.status)}`}>
+          <div className="flex flex-col items-start gap-1 sm:gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <p className="lp-log m-0 min-w-0 text-[8px] sm:text-[10px] text-[var(--lp-color-text-muted)]">{categoryLine || formatMetaLabel(meta.category)}</p>
+            <span className={`lp-log border px-1 py-[2px] text-[8px] sm:text-[10px] ${statusClass(meta.status)}`}>
               {statusLabel.replace('_', ' ')}
             </span>
           </div>
 
-          <p className="lp-log m-0 text-[10px] text-[var(--lp-color-primary-100)]">SUMMARY: {product.lpMeta?.summary ?? meta.shortDescription}</p>
+          <p className="lp-log m-0 text-[8px] sm:text-[10px] text-[var(--lp-color-primary-100)]">SUMMARY: {product.lpMeta?.summary ?? meta.shortDescription}</p>
         </div>
       </Link>
 
-      <div className="space-y-2 border-t border-[var(--lp-color-border-subtle)] p-[10px]">
+      <div className="space-y-1 border-t border-[var(--lp-color-border-subtle)] p-[10px] sm:space-y-2">
         <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-2">
-          <p className="m-0 whitespace-nowrap text-[16px] leading-none text-[var(--lp-color-primary-100)]">{formatPrice(price.amount, price.currencyCode)}</p>
-          <span className="lp-log whitespace-nowrap text-[10px] text-[var(--lp-color-text-muted)]">{canPurchase ? 'PURCHASE READY' : 'UNAVAILABLE'}</span>
+          <p className="m-0 whitespace-nowrap text-[14px] leading-none text-[var(--lp-color-primary-100)] sm:text-[16px]">{formatPrice(price.amount, price.currencyCode)}</p>
+          <span className="lp-log whitespace-nowrap text-[8px] sm:text-[10px] text-[var(--lp-color-text-muted)]">{canPurchase ? 'PURCHASE READY' : 'UNAVAILABLE'}</span>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-1 sm:gap-2 sm:flex-row sm:items-center">
           <div className="flex w-full items-center border border-[var(--lp-color-border-default)] sm:w-auto">
             <button
               onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-              className="h-9 flex-1 border-r border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:w-9 sm:flex-none"
+              className="h-8 flex-1 border-r border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:h-9 sm:w-9 sm:flex-none"
               aria-label="Decrease quantity"
             >
               -
             </button>
-            <span className="lp-log flex-1 text-center text-[11px] sm:w-9 sm:flex-none">{quantity}</span>
+            <span className="lp-log flex-1 text-center text-[10px] sm:w-9 sm:text-[11px] sm:flex-none">{quantity}</span>
             <button
               onClick={() => setQuantity((current) => current + 1)}
-              className="h-9 flex-1 border-l border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:w-9 sm:flex-none"
+              className="h-8 flex-1 border-l border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:h-9 sm:w-9 sm:flex-none"
               aria-label="Increase quantity"
             >
               +
@@ -121,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={!canPurchase || adding}
-            className="lp-focus-ring lp-log min-h-[36px] w-full border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-2 text-[10px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1"
+            className="lp-focus-ring lp-log min-h-[32px] w-full border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-1 text-[9px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[36px] sm:py-2 sm:text-[10px] sm:flex-1"
             aria-label="ADD TO CART"
           >
             {adding ? 'ADDING...' : 'ADD TO CART'}

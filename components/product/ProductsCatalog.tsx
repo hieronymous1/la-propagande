@@ -72,7 +72,7 @@ function FilterButton({ active, children, onClick }: { active: boolean; children
   return (
     <button
       onClick={onClick}
-      className={`lp-focus-ring lp-log min-h-[40px] border px-2 py-[5px] text-center text-[10px] leading-[1.3] ${
+      className={`lp-focus-ring lp-log min-h-[36px] border px-2 py-[3px] text-center text-[9px] leading-[1.2] md:min-h-[40px] md:py-[5px] md:text-[10px] ${
         active
           ? 'border-[var(--lp-color-border-accent-bright)] text-[var(--lp-color-primary-100)]'
           : 'border-[var(--lp-color-border-default)] text-[var(--lp-color-text-muted)] hover:border-[var(--lp-color-border-accent)] hover:text-[var(--lp-color-text-strong)]'
@@ -210,19 +210,19 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
           <button
             type="button"
             onClick={() => setFiltersOpen((open) => !open)}
-            className="lp-focus-ring lp-log flex w-full items-center justify-between border border-[var(--lp-color-border-default)] px-3 py-3 text-[10px] text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)] md:hidden"
+            className="lp-focus-ring lp-log flex w-full items-center justify-between gap-2 border border-[var(--lp-color-border-default)] px-2 py-2 text-[9px] text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)] md:hidden"
             aria-expanded={filtersOpen}
             aria-controls="catalog-filters"
           >
-            <span>FILTERS / {activeFilterCount} ACTIVE</span>
-            <span>{filtersOpen ? 'CLOSE' : 'OPEN'}</span>
+            <span className="flex-1 truncate">FILTERS / {activeFilterCount} ACTIVE</span>
+            <span className="shrink-0">{filtersOpen ? 'CLOSE' : 'OPEN'}</span>
           </button>
-          <div id="catalog-filters" className={filtersOpen ? 'block' : 'hidden md:block'}>
+          <div id="catalog-filters" className={`${filtersOpen ? 'block' : 'hidden'} md:block`}>
             <Panel>
               <PanelTitleBar title="STORE FILTERS" meta="CATALOG CONTROLS" />
-              <div className="space-y-3 p-[10px]">
-            <div className="space-y-2">
-              <p className="lp-log m-0 text-[10px]">SEARCH</p>
+              <div className="space-y-2 p-[10px] md:space-y-3">
+            <div className="space-y-1 md:space-y-2">
+              <p className="lp-log m-0 text-[9px] md:text-[10px]">SEARCH</p>
               <input
                 value={query}
                 onChange={(event) => {
@@ -231,12 +231,12 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
                   syncToUrl(category, subcategory, status, sortMode, collection, next);
                 }}
                 placeholder="Search products, item code, or collection"
-                className="lp-focus-ring w-full border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-2 py-2 text-[12px] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-muted)]"
+                className="lp-focus-ring w-full border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-2 py-1 text-[11px] md:py-2 md:text-[12px] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-muted)]"
               />
             </div>
 
-            <div className="space-y-2">
-              <p className="lp-log m-0 text-[10px]">CATEGORY</p>
+            <div className="space-y-1 md:space-y-2">
+              <p className="lp-log m-0 text-[9px] md:text-[10px]">CATEGORY</p>
               <div className="flex flex-wrap gap-1">
                 {[
                   { value: 'all', label: 'ALL' },
@@ -262,8 +262,8 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
             </div>
 
             {selectedSubcategories ? (
-              <div className="space-y-2">
-                <p className="lp-log m-0 text-[10px]">SUBCATEGORY</p>
+              <div className="space-y-1 md:space-y-2">
+                <p className="lp-log m-0 text-[9px] md:text-[10px]">SUBCATEGORY</p>
                 <div className="flex flex-wrap gap-1">
                   <FilterButton
                     active={subcategory === 'all'}
@@ -290,8 +290,8 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
               </div>
             ) : null}
 
-            <div className="space-y-2">
-              <p className="lp-log m-0 text-[10px]">COLLECTION</p>
+            <div className="space-y-1 md:space-y-2">
+              <p className="lp-log m-0 text-[9px] md:text-[10px]">COLLECTION</p>
               <div className="flex flex-wrap gap-1">
                 <FilterButton
                   active={collection === 'all'}
@@ -317,8 +317,8 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="lp-log m-0 text-[10px]">AVAILABILITY</p>
+            <div className="space-y-1 md:space-y-2">
+              <p className="lp-log m-0 text-[9px] md:text-[10px]">AVAILABILITY</p>
               <div className="flex flex-wrap gap-1">
                 {[
                   { value: 'all', label: 'ALL' },
@@ -342,8 +342,8 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="lp-log m-0 text-[10px]">SORT</p>
+            <div className="space-y-1 md:space-y-2">
+              <p className="lp-log m-0 text-[9px] md:text-[10px]">SORT</p>
               <div className="flex flex-wrap gap-1">
                 {[
                   { value: 'latest', label: 'NEWEST' },
@@ -375,7 +375,7 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
                 setQuery('');
                 syncToUrl('all', 'all', 'all', 'latest', 'all', '');
               }}
-              className="lp-focus-ring lp-log w-full border border-[var(--lp-color-border-default)] px-2 py-[7px] text-[10px] hover:border-[var(--lp-color-border-accent)]"
+              className="lp-focus-ring lp-log w-full border border-[var(--lp-color-border-default)] px-2 py-[5px] text-[9px] md:py-[7px] md:text-[10px] hover:border-[var(--lp-color-border-accent)]"
             >
               RESET FILTERS
             </button>
@@ -391,13 +391,13 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
             <div className="space-y-3 p-[10px]">
               {filteredProducts.length > 0 ? (
                 <div className="md:hidden">
-                  <p className="lp-log m-0 pb-1 text-[10px] text-[var(--lp-color-text-muted)]">MOBILE VIEW</p>
+                  <p className="lp-log m-0 pb-1 text-[8px] md:text-[10px] text-[var(--lp-color-text-muted)]">MOBILE VIEW</p>
                   <div className="flex gap-1">
                     <FilterButton active={mobileColumns === 2} onClick={() => setMobileColumns(2)}>
-                      2 COLUMNS
+                      2 COL
                     </FilterButton>
                     <FilterButton active={mobileColumns === 1} onClick={() => setMobileColumns(1)}>
-                      1 COLUMN
+                      1 COL
                     </FilterButton>
                   </div>
                 </div>
