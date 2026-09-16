@@ -25,10 +25,10 @@ test.describe('Responsive QA matrix', () => {
         if (viewport.width >= 768) {
           await expect(page.getByRole('navigation').getByLabel('Search or command input').first()).toBeVisible();
         } else {
-          const menuToggle = page.getByRole('button', { name: 'Toggle menu' });
+          const menuToggle = page.getByRole('button', { name: 'MENU' });
           await expect(menuToggle).toBeVisible();
           await menuToggle.click();
-          await expect(page.getByText('SEARCH / COMMAND')).toBeVisible();
+          await expect(page.getByText('COMMAND.SHEET')).toBeVisible();
           await page.getByRole('button', { name: 'CLOSE' }).click();
         }
       }
@@ -39,9 +39,9 @@ test.describe('Responsive QA matrix', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
 
-    await expect(page.getByText('SYSTEM LOG STREAM')).not.toBeVisible();
-    await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeVisible();
+    await expect(page.getByText('SYSTEM LOG')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'MENU' })).toBeVisible();
     await expect(page.getByRole('button', { name: /ABOUT/i })).toBeVisible();
-    await expect(page.getByText(/archive/i)).toHaveCount(0);
+    await expect(page.getByText('ARCHIVE INDEX', { exact: true })).toBeVisible();
   });
 });

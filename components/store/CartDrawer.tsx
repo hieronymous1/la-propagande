@@ -1,121 +1,135 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect } from 'react';
+import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 import { useCart } from './CartProvider';
 import type { CartLine } from '@/lib/types';
+import { formatPrice } from '@/lib/product-options';
 
 export default function CartDrawer() {
   const { cart, isOpen, closeCart, updateQuantity, removeFromCart } = useCart();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef<HTMLElement | null>(null);
 
   const lines: CartLine[] = cart?.lines.edges.map((e) => e.node) ?? [];
   const subtotal = cart?.cost.subtotalAmount;
+  const count = lines.reduce((sum, line) => sum + line.quantity, 0);
 
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeCart();
+    restoreFocus.current = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = 'hidden';
+    const node = panelRef.current;
+    const focusables = () => Array.from(node?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,[tabindex]:not([tabindex="-1"])') ?? []);
+    window.setTimeout(() => focusables()[0]?.focus(), 30);
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeCart();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+      restoreFocus.current?.focus?.();
+    };
   }, [isOpen, closeCart]);
 
   return (
     <>
-      {isOpen ? <div className="fixed inset-0 z-[199] bg-black/70" onClick={closeCart} aria-hidden="true" /> : null}
+      {isOpen ? <div className="lp-drawer-backdrop" onClick={closeCart} aria-hidden="true" /> : null}
 
-      <div
-        className={`fixed right-0 top-0 z-[200] h-full w-[calc(100%-2rem)] border-l border-[var(--lp-color-border-accent)] bg-[var(--lp-color-bg-2)] transition-transform duration-200 sm:w-[360px] ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        aria-label="Cart"
-        role="dialog"
-        aria-modal="true"
-        aria-hidden={!isOpen}
-      >
-        <div className="flex h-full flex-col">
-          <div className="lp-panel-title">
-            <span className="font-lp-ui text-[11px] uppercase text-[var(--lp-color-text-strong)]">CART</span>
-            <button onClick={closeCart} className="lp-log text-[10px] hover:text-[var(--lp-color-primary-100)]" aria-label="Close cart">
-              CLOSE
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-3">
-            {lines.length === 0 ? (
-              <div className="space-y-1 text-center">
-                <p className="m-0 text-[14px] text-[var(--lp-color-text-main)]">Your cart is empty</p>
-                <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-muted)]">Pick pieces from the Store to start checkout.</p>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {lines.map((line) => {
-                  const image = line.merchandise.product.images.edges[0]?.node ?? null;
-                  return (
-                    <li key={line.id} className="border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] p-2">
-                      <div className="flex gap-2">
-                        <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-[var(--lp-color-border-subtle)]">
-                          {image ? (
-                            <Image src={image.url} alt={image.altText ?? line.merchandise.product.title} fill className="object-cover" sizes="56px" />
-                          ) : (
-                            <div className="h-full w-full bg-[var(--lp-color-bg-3)]" />
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-strong)]">{line.merchandise.product.title}</p>
-                          <p className="lp-log m-0 text-[10px] text-[var(--lp-color-text-muted)]">{line.merchandise.title}</p>
-                          <p className="lp-log m-0 text-[10px] text-[var(--lp-color-primary-100)]">
-                            {line.merchandise.price.currencyCode} {parseFloat(line.merchandise.price.amount).toFixed(2)}
-                          </p>
-
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => updateQuantity(line.id, line.quantity - 1)}
-                              className="h-6 w-6 border border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)]"
-                              aria-label="Decrease quantity"
-                            >
-                              −
-                            </button>
-                            <span className="lp-log w-5 text-center text-[10px]">{line.quantity}</span>
-                            <button
-                              onClick={() => updateQuantity(line.id, line.quantity + 1)}
-                              className="h-6 w-6 border border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)]"
-                              aria-label="Increase quantity"
-                            >
-                              +
-                            </button>
-                            <button
-                              onClick={() => removeFromCart(line.id)}
-                              className="ml-auto lp-log border border-[var(--lp-color-border-default)] px-2 py-[2px] text-[9px] hover:border-[var(--lp-color-border-accent)]"
-                              aria-label="Remove item"
-                            >
-                              REMOVE
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-
-          {lines.length > 0 && subtotal ? (
-            <div className="space-y-2 border-t border-[var(--lp-color-border-default)] p-3">
-              <p className="m-0 text-[12px] text-[var(--lp-color-text-main)]">
-                Subtotal: {subtotal.currencyCode} {parseFloat(subtotal.amount).toFixed(2)}
-              </p>
-              <a
-                href={cart?.checkoutUrl ?? '#'}
-                className="lp-focus-ring block border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-2 py-3 text-center lp-log text-[10px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)]"
-              >
-                GO TO CHECKOUT
-              </a>
-            </div>
-          ) : null}
+      <div ref={panelRef} className="lp-drawer" data-open={isOpen ? 'true' : 'false'} aria-label="Cart" role="dialog" aria-modal="true" aria-hidden={!isOpen} inert={isOpen ? undefined : ('' as unknown as boolean)}>
+        <div className="lp-panel-title min-h-[var(--lp-topbar-h)]">
+          <span className="lp-panel-title__name">CART · {String(count).padStart(2, '0')}</span>
+          <button onClick={closeCart} className="lp-btn lp-btn--sm" aria-label="Close cart">
+            CLOSE
+          </button>
         </div>
+
+        <div className="flex-1 overflow-y-auto p-3">
+          {lines.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+              <Image src="/images/brand/sigil-square.webp" alt="" width={120} height={100} className="w-[110px] opacity-60 saturate-0" />
+              <div>
+                <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">Buffer empty</p>
+                <p className="lp-body lp-body-sm m-0 mt-1 text-[var(--lp-color-text-muted)]">Nothing queued for checkout yet.</p>
+              </div>
+              <Link href="/products" onClick={closeCart} className="lp-btn lp-btn--primary">
+                ENTER STORE <span className="lp-btn__arrow">&gt;</span>
+              </Link>
+            </div>
+          ) : (
+            <ul className="m-0 list-none space-y-2 p-0">
+              {lines.map((line) => {
+                const image = line.merchandise.product.images.edges[0]?.node ?? null;
+                const lineTotal = (parseFloat(line.merchandise.price.amount) * line.quantity).toFixed(2);
+                return (
+                  <li key={line.id} className="lp-panel lp-reveal flex gap-3 p-2">
+                    <Link href={`/products/${line.merchandise.product.handle}`} onClick={closeCart} className="lp-media relative block h-20 w-16 shrink-0">
+                      {image ? <Image src={image.url} alt={image.altText ?? line.merchandise.product.title} fill className="object-cover" sizes="64px" /> : null}
+                    </Link>
+
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="lp-label m-0 truncate text-[var(--lp-color-text-strong)]">{line.merchandise.product.title}</p>
+                          <p className="lp-log m-0">{line.merchandise.title === 'Default Title' ? 'ONE SIZE' : line.merchandise.title}</p>
+                        </div>
+                        <p className="lp-label m-0 whitespace-nowrap text-[var(--lp-color-primary-300)]">{formatPrice(lineTotal, line.merchandise.price.currencyCode)}</p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="inline-flex items-center border border-[var(--lp-color-border-default)]" role="group" aria-label="Quantity">
+                          <button onClick={() => updateQuantity(line.id, line.quantity - 1)} className="lp-btn lp-btn--ghost h-9 w-9 border-0 border-r border-[var(--lp-color-border-default)] p-0" aria-label="Decrease quantity">
+                            −
+                          </button>
+                          <span className="lp-ui lp-tabular w-9 text-center">{line.quantity}</span>
+                          <button onClick={() => updateQuantity(line.id, line.quantity + 1)} className="lp-btn lp-btn--ghost h-9 w-9 border-0 border-l border-[var(--lp-color-border-default)] p-0" aria-label="Increase quantity">
+                            +
+                          </button>
+                        </div>
+                        <button onClick={() => removeFromCart(line.id)} className="lp-btn lp-btn--ghost lp-btn--sm ml-auto" aria-label={`Remove ${line.merchandise.product.title}`}>
+                          REMOVE
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {lines.length > 0 && subtotal ? (
+          <div className="space-y-3 border-t border-[var(--lp-color-border-accent)] bg-[var(--lp-color-bg-2)] p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+            <dl className="lp-meta m-0">
+              <dt>Items</dt>
+              <dd className="lp-tabular">{count}</dd>
+              <dt>Subtotal</dt>
+              <dd className="lp-display lp-display-sm text-[var(--lp-color-text-strong)]">{formatPrice(subtotal.amount, subtotal.currencyCode)}</dd>
+            </dl>
+            <p className="lp-log m-0">SHIPPING AND TAXES CALCULATED AT CHECKOUT</p>
+            <a href={cart?.checkoutUrl ?? '#'} className="lp-btn lp-btn--primary lp-btn--lg lp-btn--block">
+              GO TO CHECKOUT <span className="lp-btn__arrow">&gt;</span>
+            </a>
+          </div>
+        ) : null}
       </div>
     </>
   );

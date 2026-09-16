@@ -10,8 +10,8 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page.getByRole('button', { name: /VIEW EVENTS/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /ABOUT/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /CONNECT/i })).toBeVisible();
-    await expect(page.getByText(/archive/i)).toHaveCount(0);
-    await expect(page.getByPlaceholder('SEARCH PRODUCTS OR EVENTS').first()).toBeVisible();
+    await expect(page.getByText('ARCHIVE INDEX', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Open command palette' }).first()).toBeVisible();
 
     await page.getByRole('button', { name: /ABOUT/i }).first().click();
     await expect(page).toHaveURL('/about');
@@ -46,14 +46,14 @@ test.describe('LA PROPAGANDE smoke', () => {
     await page.getByRole('button', { name: 'LIMITED' }).click();
     await expect(page).toHaveURL(/[?&]s=limited/);
 
-    await page.getByRole('button', { name: 'PRICE: LOW TO HIGH' }).click();
+    await page.getByRole('button', { name: 'PRICE ↑' }).click();
     await expect(page).toHaveURL(/[?&]o=low-high/);
 
     await page.getByRole('button', { name: 'RESET FILTERS' }).click();
     await expect(page).toHaveURL('/products');
   });
 
-  test('store listing shows placeholder-ready dossier cards', async ({ page }) => {
+  test('store listing shows seeded product cards', async ({ page }) => {
     await page.goto('/products');
 
     const productLinks = page.locator('a[href^="/products/"]');
@@ -62,7 +62,7 @@ test.describe('LA PROPAGANDE smoke', () => {
 
     await expect(page.getByRole('button', { name: 'ADD TO CART' }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Increase quantity' }).first()).toBeVisible();
-    await expect(page.getByText('INVENTORY DOSSIER', { exact: true })).toBeVisible();
+    await expect(page.locator('article.lp-panel').first()).toBeVisible();
   });
 
   test('catalog card quantity controls add multiple units to cart', async ({ page }) => {

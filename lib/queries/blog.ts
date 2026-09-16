@@ -151,7 +151,7 @@ function withLpMeta(article: RawArticle): Article {
       transmissionId: transmissionId ?? article.lpMeta?.transmissionId ?? article.id.toUpperCase(),
       channel: channel ?? article.lpMeta?.channel ?? article.tags[0] ?? 'BULLETIN',
       status: status ?? article.lpMeta?.status ?? 'ACTIVE',
-      location: location ?? article.lpMeta?.location ?? 'PARIS',
+      location: location ?? article.lpMeta?.location ?? '',
       source: source ?? article.lpMeta?.source ?? article.author.name,
     },
   };

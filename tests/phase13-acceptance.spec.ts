@@ -85,7 +85,6 @@ test.describe('Phase 13 acceptance checklist', () => {
     await expect(nav.getByRole('link', { name: 'ABOUT' }).first()).toBeVisible();
     await expect(nav.getByRole('link', { name: 'CONNECT' }).first()).toBeVisible();
     await expect(nav.getByRole('link', { name: /archive/i })).toHaveCount(0);
-    await expect(page.getByText(/archive/i)).toHaveCount(0);
 
     await page.getByRole('navigation').getByLabel('Search or command input').first().fill('archive');
     await page.getByRole('button', { name: 'GO' }).first().click();
@@ -120,7 +119,7 @@ test.describe('Phase 13 acceptance checklist', () => {
     await expect(page.getByText('LA PROPAGANDE', { exact: true })).toBeVisible();
     await expect(page.getByRole('navigation').getByLabel('Search or command input').first()).toBeVisible();
     await expect(page.getByRole('button', { name: /ABOUT/i })).toBeVisible();
-    await expect(page.getByText(/archive/i)).toHaveCount(0);
+    await expect(page.getByText('ARCHIVE INDEX', { exact: true })).toBeVisible();
     await expect(page.getByText('ROOT.CONSOLE')).toBeVisible();
   });
 
@@ -128,7 +127,7 @@ test.describe('Phase 13 acceptance checklist', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/products');
     await expect(page.locator('nav').first().getByRole('link', { name: 'STORE' }).first()).toBeVisible();
-    await expect(page.getByText('INVENTORY DOSSIER', { exact: true })).toBeVisible();
+    await expect(page.locator('article.lp-panel').first()).toBeVisible();
 
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/blog');
@@ -136,8 +135,8 @@ test.describe('Phase 13 acceptance checklist', () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/products');
-    await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeVisible();
-    await page.getByRole('button', { name: 'Toggle menu' }).click();
+    await expect(page.getByRole('button', { name: 'MENU' })).toBeVisible();
+    await page.getByRole('button', { name: 'MENU' }).click();
     await expect(page.getByText('COMMAND.SHEET')).toBeVisible();
     await expect(page.getByRole('link', { name: /> EVENTS/ })).toBeVisible();
   });

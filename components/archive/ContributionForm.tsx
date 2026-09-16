@@ -43,9 +43,9 @@ export default function ContributionForm() {
 
   if (submitted) {
     return (
-      <div className="space-y-2 border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.15)] p-3">
-        <p className="font-lp-ui m-0 text-[14px] uppercase text-[var(--lp-color-text-strong)]">TRANSMISSION RECEIVED</p>
-        <p className="lp-log m-0 text-[10px]">WE WILL REVIEW YOUR FRAGMENT.</p>
+      <div className="lp-panel lp-panel--accent lp-reveal space-y-2 p-4" role="status">
+        <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">Transmission received</p>
+        <p className="lp-body lp-body-sm m-0">Your fragment is in the recovery queue. We review every submission by hand.</p>
       </div>
     );
   }
@@ -55,32 +55,32 @@ export default function ContributionForm() {
       <input
         type="text"
         name="name"
-        placeholder="NAME"
+        placeholder="Name"
         required
-        className="w-full border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-dim)] focus:border-[var(--lp-color-border-accent)] focus:outline-none"
+        className="lp-input"
       />
       <input
         type="email"
         name="email"
-        placeholder="EMAIL"
+        placeholder="Email"
         required
-        className="w-full border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-dim)] focus:border-[var(--lp-color-border-accent)] focus:outline-none"
+        className="lp-input"
       />
       <textarea
         name="message"
-        placeholder="MESSAGE"
+        placeholder="What did you find, and where?"
         rows={5}
         required
-        className="w-full resize-none border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-3 py-2 text-[11px] uppercase tracking-[0.06em] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-dim)] focus:border-[var(--lp-color-border-accent)] focus:outline-none"
+        className="lp-textarea"
       />
       <button
         type="submit"
         disabled={submitting}
-        className="lp-focus-ring lp-log w-full border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-3 text-[11px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:opacity-60"
+        className="lp-btn lp-btn--primary lp-btn--block"
       >
         {submitting ? 'SENDING...' : 'SUBMIT FRAGMENT'}
       </button>
-      {error ? <p className="lp-log m-0 text-[10px] text-[var(--lp-color-status-alert)]">{error}</p> : null}
+      {error ? <p className="lp-warning-box lp-log m-0" role="alert">{error}</p> : null}
     </form>
   );
 }

@@ -9,18 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "lp-red": "#8d0202",
+        "lp-red": "#8e1111",
         "lp-black": "#050505",
-        "lp-white": "#f2f2f2",
-        "lp-cream": "#d9d9d9",
+        "lp-white": "#ece7da",
+        "lp-cream": "#d6d1c4",
       },
       fontFamily: {
-        "army-rust": ["var(--lp-font-display)", "sans-serif"],
-        "retro-computer": ["var(--lp-font-ui)", "monospace"],
-        "dirty-war": ["var(--lp-font-display)", "sans-serif"],
-        "vhs-gothic": ["var(--lp-font-display)", "sans-serif"],
         display: ["var(--lp-font-display)", "sans-serif"],
+        label: ["var(--lp-font-label)", "sans-serif"],
+        ui: ["var(--lp-font-ui)", "monospace"],
+        body: ["var(--lp-font-body)", "monospace"],
         mono: ["var(--lp-font-ui)", "monospace"],
+      },
+      transitionTimingFunction: {
+        lp: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },

@@ -6,15 +6,13 @@ import Link from 'next/link';
 import type { Product } from '@/lib/types';
 import { useCart } from '@/components/store/CartProvider';
 import { getProductCatalogMeta } from '@/lib/site';
-import { Panel, PanelTitleBar } from '@/components/system/Primitives';
+import { formatPrice, getQuickAddSizes } from '@/lib/product-options';
+import type { ChipTone } from '@/components/system/Primitives';
 
 interface ProductCardProps {
   product: Product;
-}
-
-function formatPrice(amount: string, currencyCode: string): string {
-  const num = parseFloat(amount);
-  return `${num % 1 === 0 ? num.toFixed(0) : num.toFixed(2)} ${currencyCode}`;
+  index?: number;
+  compact?: boolean;
 }
 
 function formatMetaLabel(value: string): string {
@@ -24,110 +22,161 @@ function formatMetaLabel(value: string): string {
     .join(' ');
 }
 
-function statusClass(status: string): string {
-  if (status === 'AVAILABLE') return 'border-[#768F61] text-[#768F61]';
-  if (status === 'LIMITED') return 'border-[var(--lp-color-status-warning)] text-[var(--lp-color-status-warning)]';
-  if (status === 'ARCHIVE') return 'border-[var(--lp-color-status-warning)] text-[var(--lp-color-status-warning)]';
-  if (status === 'COMING_SOON') return 'border-[#788B9C] text-[#788B9C]';
-  return 'border-[#6B2A2A] text-[#6B2A2A]';
+function statusTone(status: string): ChipTone {
+  if (status === 'AVAILABLE') return 'success';
+  if (status === 'LIMITED' || status === 'ARCHIVE') return 'warning';
+  if (status === 'COMING_SOON') return 'info';
+  return 'locked';
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
-  const firstImage = product.images.edges[0]?.node ?? null;
-  const firstVariant = product.variants.edges[0]?.node ?? null;
+function statusLabel(status: string): string {
+  if (status === 'ARCHIVE') return 'LIMITED';
+  if (status === 'COMING_SOON') return 'MADE TO ORDER';
+  return status.replace('_', ' ');
+}
+
+export default function ProductCard({ product, index = 0, compact = false }: ProductCardProps) {
+  const images = product.images.edges.map((edge) => edge.node);
+  const firstImage = images[0] ?? null;
+  const secondImage = images[1] ?? null;
   const price = product.priceRange.minVariantPrice;
   const meta = getProductCatalogMeta(product);
   const { addToCart } = useCart();
-  const [quantity, setQuantity] = useState(1);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState<string | null>(null);
+  const [added, setAdded] = useState<string | null>(null);
+  const [quickOpen, setQuickOpen] = useState(false);
 
-  const categoryLine = [meta.collection, meta.subcategory ? formatMetaLabel(meta.subcategory) : formatMetaLabel(meta.category)]
-    .filter(Boolean)
-    .join(' · ');
-  const statusLabel = meta.status === 'ARCHIVE' ? 'LIMITED' : meta.status;
-  const canPurchase = Boolean(firstVariant?.availableForSale);
+  const sizes = getQuickAddSizes(product);
+  const anyAvailable = sizes.some((size) => size.variant);
+  const categoryLine = [meta.collection, meta.subcategory ? formatMetaLabel(meta.subcategory) : formatMetaLabel(meta.category)].filter(Boolean).join(' · ');
 
-  async function handleAddToCart() {
-    if (!firstVariant || !canPurchase) return;
-
-    setAdding(true);
+  async function quickAdd(variantId: string, label: string) {
+    setAdding(label);
     try {
-      await addToCart(firstVariant.id, quantity);
+      await addToCart(variantId, 1);
+      setAdded(label);
+      window.setTimeout(() => setAdded(null), 1400);
     } finally {
-      setAdding(false);
+      setAdding(null);
     }
   }
 
   return (
-    <Panel className="overflow-hidden transition-[border-color,box-shadow] duration-100 hover:border-[var(--lp-color-border-accent-bright)] hover:shadow-[var(--lp-shadow-red-soft)]">
-      <PanelTitleBar title={product.lpMeta?.itemCode ?? product.handle.toUpperCase()} meta={formatMetaLabel(meta.category)} />
+    <article className="lp-panel lp-panel--interactive lp-reveal group flex flex-col" style={{ ['--i' as string]: Math.min(index, 12) }}>
+      <Link href={`/products/${product.handle}`} className="lp-focus-ring block" aria-label={`${product.title} — open item record`}>
+        <div className="lp-media relative aspect-[4/5] w-full overflow-hidden border-0 border-b border-[var(--lp-color-border-subtle)]">
+          {firstImage ? (
+            <>
+              <Image
+                src={firstImage.url}
+                alt={firstImage.altText ?? product.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                className={`object-cover transition-[transform,opacity] duration-500 ease-lp group-hover:scale-[1.03] ${secondImage ? 'group-hover:opacity-0' : ''}`}
+              />
+              {secondImage ? (
+                <Image
+                  src={secondImage.url}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                  className="object-cover opacity-0 transition-opacity duration-500 ease-lp group-hover:opacity-100"
+                />
+              ) : null}
+            </>
+          ) : (
+            <div className="flex h-full items-center justify-center bg-[var(--lp-color-bg-2)]">
+              <span className="lp-log">NO IMAGE ON FILE</span>
+            </div>
+          )}
 
-      <Link href={`/products/${product.handle}`} className="group block w-full lp-focus-ring">
-        {firstImage ? (
-          <div className="relative aspect-[4/5] w-full overflow-hidden border-b border-[var(--lp-color-border-subtle)] bg-[var(--lp-color-bg-1)]">
-            <Image
-              src={firstImage.url}
-              alt={firstImage.altText ?? product.title}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-cover transition-transform duration-100 group-hover:translate-y-[-1px] group-hover:translate-x-[1px]"
-            />
-          </div>
-        ) : (
-          <div className="flex aspect-[4/5] items-center justify-center border-b border-[var(--lp-color-border-subtle)] bg-[var(--lp-color-bg-1)]">
-            <span className="lp-log text-[10px]">NO PRODUCT IMAGE</span>
-          </div>
-        )}
+          <span className={`lp-chip absolute left-2 top-2 max-w-[calc(100%-16px)] truncate bg-[rgba(5,5,5,0.7)] backdrop-blur-[2px] ${compact ? 'hidden md:inline-flex' : ''}`}>{product.lpMeta?.itemCode ?? product.handle.toUpperCase()}</span>
+          <span className="lp-chip absolute right-2 top-2 bg-[rgba(5,5,5,0.7)] backdrop-blur-[2px]" data-tone={statusTone(meta.status)}>
+            {statusLabel(meta.status)}
+          </span>
 
-        <div className="space-y-[5px] p-[10px] sm:space-y-[7px]">
-          <p className="m-0 font-lp-ui text-[15px] uppercase leading-[1.08] text-[var(--lp-color-text-strong)] sm:text-[18px]">{product.title}</p>
-
-          <div className="flex flex-col items-start gap-1 sm:gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p className="lp-log m-0 min-w-0 text-[8px] sm:text-[10px] text-[var(--lp-color-text-muted)]">{categoryLine || formatMetaLabel(meta.category)}</p>
-            <span className={`lp-log border px-1 py-[2px] text-[8px] sm:text-[10px] ${statusClass(meta.status)}`}>
-              {statusLabel.replace('_', ' ')}
-            </span>
-          </div>
-
-          <p className="lp-log m-0 text-[8px] sm:text-[10px] text-[var(--lp-color-primary-100)]">SUMMARY: {product.lpMeta?.summary ?? meta.shortDescription}</p>
+          {/* desktop quick-add overlay */}
+          {sizes.length > 0 && anyAvailable ? (
+            <div className="absolute inset-x-0 bottom-0 hidden translate-y-full bg-[rgba(5,5,5,0.9)] p-2 backdrop-blur-[3px] transition-transform duration-300 ease-lp group-hover:translate-y-0 group-focus-within:translate-y-0 md:block">
+              <p className="lp-log m-0 mb-1 text-[var(--lp-color-text-dim)]">QUICK ADD</p>
+              <div className="flex flex-wrap gap-1">
+                {sizes.map((size) => (
+                  <button
+                    key={size.value}
+                    type="button"
+                    disabled={!size.variant || adding !== null}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      if (size.variant) quickAdd(size.variant.id, size.value);
+                    }}
+                    className="lp-toggle min-h-[34px] min-w-[38px] px-2 disabled:line-through disabled:opacity-40"
+                    data-active={added === size.value ? 'true' : undefined}
+                    aria-label={`Add size ${size.value} to cart`}
+                  >
+                    {adding === size.value ? '…' : added === size.value ? '✓' : size.value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </Link>
 
-      <div className="space-y-1 border-t border-[var(--lp-color-border-subtle)] p-[10px] sm:space-y-2">
-        <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-2">
-          <p className="m-0 whitespace-nowrap text-[14px] leading-none text-[var(--lp-color-primary-100)] sm:text-[16px]">{formatPrice(price.amount, price.currencyCode)}</p>
-          <span className="lp-log whitespace-nowrap text-[8px] sm:text-[10px] text-[var(--lp-color-text-muted)]">{canPurchase ? 'PURCHASE READY' : 'UNAVAILABLE'}</span>
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <div className="min-w-0">
+          <Link href={`/products/${product.handle}`} className="lp-focus-ring block">
+            <h3 className={`lp-display m-0 text-[var(--lp-color-text-strong)] transition-colors duration-150 group-hover:text-[var(--lp-color-primary-300)] ${compact ? 'text-[18px]' : 'text-[20px] md:text-[24px]'}`}>
+              {product.title}
+            </h3>
+          </Link>
+          <p className="lp-log m-0 mt-1 truncate">{categoryLine || formatMetaLabel(meta.category)}</p>
         </div>
 
-        <div className="flex flex-col gap-1 sm:gap-2 sm:flex-row sm:items-center">
-          <div className="flex w-full items-center border border-[var(--lp-color-border-default)] sm:w-auto">
-            <button
-              onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-              className="h-8 flex-1 border-r border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:h-9 sm:w-9 sm:flex-none"
-              aria-label="Decrease quantity"
-            >
-              -
-            </button>
-            <span className="lp-log flex-1 text-center text-[10px] sm:w-9 sm:text-[11px] sm:flex-none">{quantity}</span>
-            <button
-              onClick={() => setQuantity((current) => current + 1)}
-              className="h-8 flex-1 border-l border-[var(--lp-color-border-default)] text-[var(--lp-color-text-main)] hover:text-[var(--lp-color-primary-100)] sm:h-9 sm:w-9 sm:flex-none"
-              aria-label="Increase quantity"
-            >
-              +
-            </button>
+        <div className="mt-auto flex items-end justify-between gap-2">
+          <p className="lp-label lp-label-lg m-0 text-[var(--lp-color-text-strong)]">{formatPrice(price.amount, price.currencyCode)}</p>
+          {sizes.length > 1 ? (
+            <div className="flex flex-wrap justify-end gap-[3px]" aria-label="Size availability">
+              {sizes.map((size) => (
+                <span
+                  key={size.value}
+                  title={`${size.value}${size.variant ? '' : ' sold out'}`}
+                  className={`lp-ui-sm inline-flex h-[18px] min-w-[18px] items-center justify-center border px-[3px] text-[10px] ${
+                    size.variant ? 'border-[var(--lp-color-border-default)] text-[var(--lp-color-text-muted)]' : 'border-[var(--lp-color-border-subtle)] text-[var(--lp-color-text-dim)] line-through'
+                  }`}
+                >
+                  {size.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        {/* mobile quick add */}
+        {sizes.length > 0 && anyAvailable ? (
+          <div className="md:hidden">
+            {quickOpen ? (
+              <div className="flex flex-wrap gap-1">
+                {sizes.map((size) => (
+                  <button
+                    key={size.value}
+                    type="button"
+                    disabled={!size.variant || adding !== null}
+                    onClick={() => size.variant && quickAdd(size.variant.id, size.value)}
+                    className="lp-toggle min-h-[40px] min-w-[44px] flex-1 disabled:line-through disabled:opacity-40"
+                    data-active={added === size.value ? 'true' : undefined}
+                  >
+                    {adding === size.value ? '…' : added === size.value ? '✓' : size.value}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button type="button" onClick={() => setQuickOpen(true)} className="lp-btn lp-btn--sm lp-btn--block">
+                QUICK ADD
+              </button>
+            )}
           </div>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={!canPurchase || adding}
-            className="lp-focus-ring lp-log min-h-[32px] w-full border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-1 text-[9px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[36px] sm:py-2 sm:text-[10px] sm:flex-1"
-            aria-label="ADD TO CART"
-          >
-            {adding ? 'ADDING...' : 'ADD TO CART'}
-          </button>
-        </div>
+        ) : null}
       </div>
-    </Panel>
+    </article>
   );
 }

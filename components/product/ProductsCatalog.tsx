@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/product/ProductCard';
-import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
+import { Panel, PanelTitleBar } from '@/components/system/Primitives';
 import { getProductCatalogMeta } from '@/lib/site';
 import type { Product } from '@/lib/types';
 
@@ -70,14 +70,7 @@ function normalizeString(value: string): string {
 
 function FilterButton({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className={`lp-focus-ring lp-log min-h-[36px] border px-2 py-[3px] text-center text-[9px] leading-[1.2] md:min-h-[40px] md:py-[5px] md:text-[10px] ${
-        active
-          ? 'border-[var(--lp-color-border-accent-bright)] text-[var(--lp-color-primary-100)]'
-          : 'border-[var(--lp-color-border-default)] text-[var(--lp-color-text-muted)] hover:border-[var(--lp-color-border-accent)] hover:text-[var(--lp-color-text-strong)]'
-      }`}
-    >
+    <button type="button" onClick={onClick} className="lp-toggle lp-focus-ring" aria-pressed={active}>
       {children}
     </button>
   );
@@ -94,12 +87,14 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   const [isPending, startTransition] = useTransition();
 
   const collections = useMemo(() => {
-    const values = new Set<string>();
+    const values = new Map<string, string>();
     for (const product of products) {
-      const collection = getProductCatalogMeta(product).collection;
-      if (collection) values.add(collection);
+      const collection = getProductCatalogMeta(product).collection?.trim();
+      if (!collection) continue;
+      const key = collection.toLowerCase();
+      if (!values.has(key)) values.set(key, collection);
     }
-    return Array.from(values).sort((a, b) => a.localeCompare(b));
+    return Array.from(values.values()).sort((a, b) => a.localeCompare(b));
   }, [products]);
 
   const [category, setCategory] = useState<CategoryId>('all');
@@ -109,7 +104,7 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   const [collection, setCollection] = useState<string>('all');
   const [query, setQuery] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
+  const [mobileColumns, setMobileColumns] = useState<1 | 2>(2);
 
   useEffect(() => {
     setCategory(parseCategory(searchParams.get(FILTER_KEY.category)));
@@ -165,7 +160,7 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
       if (category !== 'all' && meta.category !== category) return false;
       if (subcategory !== 'all' && meta.subcategory !== subcategory) return false;
       if (status !== 'all' && meta.status.toLowerCase().replace('_', '-') !== status) return false;
-      if (collection !== 'all' && meta.collection !== collection) return false;
+      if (collection !== 'all' && (meta.collection ?? '').trim().toLowerCase() !== collection.toLowerCase()) return false;
 
       if (queryNeedle) {
         const haystack = [
@@ -203,223 +198,221 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
     Number(collection !== 'all') +
     Number(Boolean(query.trim()));
 
-  return (
-    <div className="space-y-3">
-      <div className="lp-grid-2">
-        <div className="order-2 space-y-2 md:order-1 md:max-w-[290px]">
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((open) => !open)}
-            className="lp-focus-ring lp-log flex w-full items-center justify-between gap-2 border border-[var(--lp-color-border-default)] px-2 py-2 text-[9px] text-[var(--lp-color-text-main)] hover:border-[var(--lp-color-border-accent)] md:hidden"
-            aria-expanded={filtersOpen}
-            aria-controls="catalog-filters"
-          >
-            <span className="flex-1 truncate">FILTERS / {activeFilterCount} ACTIVE</span>
-            <span className="shrink-0">{filtersOpen ? 'CLOSE' : 'OPEN'}</span>
-          </button>
-          <div id="catalog-filters" className={`${filtersOpen ? 'block' : 'hidden'} md:block`}>
-            <Panel>
-              <PanelTitleBar title="STORE FILTERS" meta="CATALOG CONTROLS" />
-              <div className="space-y-2 p-[10px] md:space-y-3">
-            <div className="space-y-1 md:space-y-2">
-              <p className="lp-log m-0 text-[9px] md:text-[10px]">SEARCH</p>
-              <input
-                value={query}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  setQuery(next);
-                  syncToUrl(category, subcategory, status, sortMode, collection, next);
-                }}
-                placeholder="Search products, item code, or collection"
-                className="lp-focus-ring w-full border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-2 py-1 text-[11px] md:py-2 md:text-[12px] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-muted)]"
-              />
-            </div>
+  const resetAll = () => {
+    setCategory('all');
+    setSubcategory('all');
+    setStatus('all');
+    setSortMode('latest');
+    setCollection('all');
+    setQuery('');
+    syncToUrl('all', 'all', 'all', 'latest', 'all', '');
+  };
 
-            <div className="space-y-1 md:space-y-2">
-              <p className="lp-log m-0 text-[9px] md:text-[10px]">CATEGORY</p>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  { value: 'all', label: 'ALL' },
-                  { value: 'tops', label: 'TOPS' },
-                  { value: 'bottoms', label: 'BOTTOMS' },
-                  { value: 'accessories', label: 'ACCESSORIES' },
-                  { value: 'custom-jackets', label: 'CUSTOM JACKETS' },
-                ].map((item) => (
-                  <FilterButton
-                    key={item.value}
-                    active={category === item.value}
-                    onClick={() => {
-                      const next = item.value as CategoryId;
-                      setCategory(next);
-                      setSubcategory('all');
-                      syncToUrl(next, 'all', status, sortMode, collection, query);
-                    }}
-                  >
-                    {item.label}
-                  </FilterButton>
-                ))}
-              </div>
-            </div>
-
-            {selectedSubcategories ? (
-              <div className="space-y-1 md:space-y-2">
-                <p className="lp-log m-0 text-[9px] md:text-[10px]">SUBCATEGORY</p>
-                <div className="flex flex-wrap gap-1">
-                  <FilterButton
-                    active={subcategory === 'all'}
-                    onClick={() => {
-                      setSubcategory('all');
-                      syncToUrl(category, 'all', status, sortMode, collection, query);
-                    }}
-                  >
-                    ALL
-                  </FilterButton>
-                  {selectedSubcategories.map((item) => (
-                    <FilterButton
-                      key={item.value}
-                      active={subcategory === item.value}
-                      onClick={() => {
-                        setSubcategory(item.value);
-                        syncToUrl(category, item.value, status, sortMode, collection, query);
-                      }}
-                    >
-                      {item.label}
-                    </FilterButton>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="space-y-1 md:space-y-2">
-              <p className="lp-log m-0 text-[9px] md:text-[10px]">COLLECTION</p>
-              <div className="flex flex-wrap gap-1">
-                <FilterButton
-                  active={collection === 'all'}
-                  onClick={() => {
-                    setCollection('all');
-                    syncToUrl(category, subcategory, status, sortMode, 'all', query);
-                  }}
-                >
-                  ALL
-                </FilterButton>
-                {collections.map((name) => (
-                  <FilterButton
-                    key={name}
-                    active={collection === name}
-                    onClick={() => {
-                      setCollection(name);
-                      syncToUrl(category, subcategory, status, sortMode, name, query);
-                    }}
-                  >
-                    {name.toUpperCase()}
-                  </FilterButton>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1 md:space-y-2">
-              <p className="lp-log m-0 text-[9px] md:text-[10px]">AVAILABILITY</p>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  { value: 'all', label: 'ALL' },
-                  { value: 'available', label: 'AVAILABLE' },
-                  { value: 'limited', label: 'LIMITED' },
-                  { value: 'sold-out', label: 'SOLD OUT' },
-                  { value: 'coming-soon', label: 'COMING SOON' },
-                ].map((item) => (
-                  <FilterButton
-                    key={item.value}
-                    active={status === item.value}
-                    onClick={() => {
-                      const next = item.value as StatusFilter;
-                      setStatus(next);
-                      syncToUrl(category, subcategory, next, sortMode, collection, query);
-                    }}
-                  >
-                    {item.label}
-                  </FilterButton>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1 md:space-y-2">
-              <p className="lp-log m-0 text-[9px] md:text-[10px]">SORT</p>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  { value: 'latest', label: 'NEWEST' },
-                  { value: 'low-high', label: 'PRICE: LOW TO HIGH' },
-                  { value: 'high-low', label: 'PRICE: HIGH TO LOW' },
-                ].map((item) => (
-                  <FilterButton
-                    key={item.value}
-                    active={sortMode === item.value}
-                    onClick={() => {
-                      const next = item.value as SortMode;
-                      setSortMode(next);
-                      syncToUrl(category, subcategory, status, next, collection, query);
-                    }}
-                  >
-                    {item.label}
-                  </FilterButton>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                setCategory('all');
-                setSubcategory('all');
-                setStatus('all');
-                setSortMode('latest');
-                setCollection('all');
-                setQuery('');
-                syncToUrl('all', 'all', 'all', 'latest', 'all', '');
+  const filterPanel = (
+    <Panel>
+      <PanelTitleBar title="FILTERS" meta={activeFilterCount ? `${activeFilterCount} ACTIVE` : 'CATALOG CONTROLS'} />
+      <div className="space-y-4 p-3">
+        <label className="block space-y-1">
+          <span className="lp-log block">SEARCH</span>
+          <span className="lp-field">
+            <span className="lp-field__prefix">&gt;</span>
+            <input
+              value={query}
+              onChange={(event) => {
+                const next = event.target.value;
+                setQuery(next);
+                syncToUrl(category, subcategory, status, sortMode, collection, next);
               }}
-              className="lp-focus-ring lp-log w-full border border-[var(--lp-color-border-default)] px-2 py-[5px] text-[9px] md:py-[7px] md:text-[10px] hover:border-[var(--lp-color-border-accent)]"
+              placeholder="Title, item code, collection"
+              className="lp-field__input"
+            />
+          </span>
+        </label>
+
+        <FilterGroup label="CATEGORY">
+          {[
+            { value: 'all', label: 'ALL' },
+            { value: 'tops', label: 'TOPS' },
+            { value: 'bottoms', label: 'BOTTOMS' },
+            { value: 'accessories', label: 'ACCESSORIES' },
+            { value: 'custom-jackets', label: 'CUSTOM JACKETS' },
+          ].map((item) => (
+            <FilterButton
+              key={item.value}
+              active={category === item.value}
+              onClick={() => {
+                const next = item.value as CategoryId;
+                setCategory(next);
+                setSubcategory('all');
+                syncToUrl(next, 'all', status, sortMode, collection, query);
+              }}
             >
-              RESET FILTERS
-            </button>
-              </div>
-            </Panel>
+              {item.label}
+            </FilterButton>
+          ))}
+        </FilterGroup>
+
+        {selectedSubcategories ? (
+          <FilterGroup label="SUBCATEGORY">
+            <FilterButton
+              active={subcategory === 'all'}
+              onClick={() => {
+                setSubcategory('all');
+                syncToUrl(category, 'all', status, sortMode, collection, query);
+              }}
+            >
+              ALL
+            </FilterButton>
+            {selectedSubcategories.map((item) => (
+              <FilterButton
+                key={item.value}
+                active={subcategory === item.value}
+                onClick={() => {
+                  setSubcategory(item.value);
+                  syncToUrl(category, item.value, status, sortMode, collection, query);
+                }}
+              >
+                {item.label}
+              </FilterButton>
+            ))}
+          </FilterGroup>
+        ) : null}
+
+        {collections.length > 0 ? (
+          <FilterGroup label="COLLECTION">
+            <FilterButton
+              active={collection === 'all'}
+              onClick={() => {
+                setCollection('all');
+                syncToUrl(category, subcategory, status, sortMode, 'all', query);
+              }}
+            >
+              ALL
+            </FilterButton>
+            {collections.map((name) => (
+              <FilterButton
+                key={name}
+                active={collection.toLowerCase() === name.toLowerCase()}
+                onClick={() => {
+                  setCollection(name);
+                  syncToUrl(category, subcategory, status, sortMode, name, query);
+                }}
+              >
+                {name.toUpperCase()}
+              </FilterButton>
+            ))}
+          </FilterGroup>
+        ) : null}
+
+        <FilterGroup label="AVAILABILITY">
+          {[
+            { value: 'all', label: 'ALL' },
+            { value: 'available', label: 'AVAILABLE' },
+            { value: 'limited', label: 'LIMITED' },
+            { value: 'sold-out', label: 'SOLD OUT' },
+            { value: 'coming-soon', label: 'MADE TO ORDER' },
+          ].map((item) => (
+            <FilterButton
+              key={item.value}
+              active={status === item.value}
+              onClick={() => {
+                const next = item.value as StatusFilter;
+                setStatus(next);
+                syncToUrl(category, subcategory, next, sortMode, collection, query);
+              }}
+            >
+              {item.label}
+            </FilterButton>
+          ))}
+        </FilterGroup>
+
+        <FilterGroup label="SORT">
+          {[
+            { value: 'latest', label: 'NEWEST' },
+            { value: 'low-high', label: 'PRICE ↑' },
+            { value: 'high-low', label: 'PRICE ↓' },
+          ].map((item) => (
+            <FilterButton
+              key={item.value}
+              active={sortMode === item.value}
+              onClick={() => {
+                const next = item.value as SortMode;
+                setSortMode(next);
+                syncToUrl(category, subcategory, status, next, collection, query);
+              }}
+            >
+              {item.label}
+            </FilterButton>
+          ))}
+        </FilterGroup>
+
+        <button type="button" onClick={resetAll} className="lp-btn lp-btn--ghost lp-btn--sm lp-btn--block" disabled={activeFilterCount === 0}>
+          RESET FILTERS
+        </button>
+      </div>
+    </Panel>
+  );
+
+  return (
+    <div className="lp-grid-2">
+      <aside className="space-y-2 md:sticky md:top-[calc(var(--lp-topbar-h)+12px)] md:self-start">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((open) => !open)}
+          className="lp-btn lp-btn--block justify-between md:hidden"
+          aria-expanded={filtersOpen}
+          aria-controls="catalog-filters"
+        >
+          <span>FILTERS{activeFilterCount ? ` · ${activeFilterCount} ACTIVE` : ''}</span>
+          <span className={`transition-transform duration-200 ${filtersOpen ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        <div id="catalog-filters" className={`${filtersOpen ? 'block' : 'hidden'} md:block`}>
+          {filterPanel}
+        </div>
+      </aside>
+
+      <section className="space-y-3" aria-label="Catalog">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="lp-log m-0" aria-live="polite">
+            {isPending ? 'UPDATING CATALOG…' : `${filteredProducts.length} RECORD${filteredProducts.length === 1 ? '' : 'S'}${activeFilterCount ? ` · ${activeFilterCount} FILTER${activeFilterCount === 1 ? '' : 'S'}` : ''}`}
+          </p>
+          <div className="flex gap-1 md:hidden" role="group" aria-label="Grid density">
+            <FilterButton active={mobileColumns === 2} onClick={() => setMobileColumns(2)}>
+              ▦
+            </FilterButton>
+            <FilterButton active={mobileColumns === 1} onClick={() => setMobileColumns(1)}>
+              ▬
+            </FilterButton>
           </div>
         </div>
 
-        <div className="order-1 space-y-3 md:order-2">
-          <StatusStrip>CATALOG STATUS: ACTIVE / ITEMS: {filteredProducts.length} / FILTERS: {activeFilterCount}</StatusStrip>
+        {filteredProducts.length > 0 ? (
+          <div className={`grid gap-3 ${mobileColumns === 2 ? 'grid-cols-2' : 'grid-cols-1'} md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4`}>
+            {filteredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} compact={mobileColumns === 2} />
+            ))}
+          </div>
+        ) : (
           <Panel>
-            <PanelTitleBar title="STORE.exe" meta="INVENTORY DOSSIER" />
-            <div className="space-y-3 p-[10px]">
-              {filteredProducts.length > 0 ? (
-                <div className="md:hidden">
-                  <p className="lp-log m-0 pb-1 text-[8px] md:text-[10px] text-[var(--lp-color-text-muted)]">MOBILE VIEW</p>
-                  <div className="flex gap-1">
-                    <FilterButton active={mobileColumns === 2} onClick={() => setMobileColumns(2)}>
-                      2 COL
-                    </FilterButton>
-                    <FilterButton active={mobileColumns === 1} onClick={() => setMobileColumns(1)}>
-                      1 COL
-                    </FilterButton>
-                  </div>
-                </div>
-              ) : null}
-
-              {filteredProducts.length > 0 ? (
-                <div className={`grid gap-[14px] ${mobileColumns === 2 ? 'grid-cols-2' : 'grid-cols-1'} md:grid-cols-2 xl:grid-cols-3`}>
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-              ) : (
-                <p className="m-0 text-[13px] text-[var(--lp-color-text-muted)]">
-                  No products match your current filters. Try another category, collection, or search query.
-                </p>
-              )}
+            <PanelTitleBar title="NO RECORDS" meta="EMPTY RESULT" />
+            <div className="space-y-3 p-4">
+              <p className="lp-body m-0">Nothing in the inventory matches this query. Loosen a filter or clear them all.</p>
+              <button type="button" onClick={resetAll} className="lp-btn lp-btn--sm">
+                CLEAR FILTERS
+              </button>
             </div>
           </Panel>
-        </div>
-      </div>
+        )}
+      </section>
+    </div>
+  );
+}
 
-      {isPending ? <p className="lp-log m-0 text-[10px]">UPDATING CATALOG...</p> : null}
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <p className="lp-log m-0">{label}</p>
+      <div className="flex flex-wrap gap-1">{children}</div>
     </div>
   );
 }

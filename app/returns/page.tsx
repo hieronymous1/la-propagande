@@ -2,11 +2,11 @@ import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitive
 
 export default function ReturnsPage() {
   return (
-    <div className="lp-shell space-y-3 py-4">
-      <StatusStrip>MODULE: RETURNS.txt / LAST EDIT: 04.14.26</StatusStrip>
+    <div className="lp-shell lp-page-pad space-y-3">
+      <StatusStrip>MODULE RETURNS.txt · LAST EDIT 04.14.26</StatusStrip>
       <Panel>
         <PanelTitleBar title="RETURNS POLICY" meta="LA PROPAGANDE — PARIS / BEIRUT" />
-        <div className="space-y-3 p-3 text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
+        <div className="lp-body lp-prose p-4 md:p-6">
           <p className="m-0">This page is being updated. For inquiries contact us directly.</p>
           <p className="m-0">We accept returns on unworn, unwashed items within 14 days of delivery. Items must be returned in their original condition with all tags attached.</p>
           <p className="m-0">To initiate a return, contact us via email or through our social channels. We will provide return instructions and a shipping label where applicable.</p>

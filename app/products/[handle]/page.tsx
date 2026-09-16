@@ -1,13 +1,25 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProductDetail from '@/components/product/ProductDetail';
-import { StatusStrip } from '@/components/system/Primitives';
 import { getProductByHandle, getProducts } from '@/lib/queries/products';
+import { getProductCatalogMeta } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
 interface ProductPageProps {
   params: { handle: string };
+}
+
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const product = await getProductByHandle(params.handle);
+  if (!product) return { title: 'Item not found' };
+  const image = product.images.edges[0]?.node.url;
+  const summary = (product.lpMeta?.shortDescription ?? product.lpMeta?.summary ?? product.description ?? '').slice(0, 160);
+  return {
+    title: product.title,
+    description: summary || `${product.title} — La Propagande`,
+    openGraph: { title: product.title, description: summary, images: image ? [{ url: image }] : undefined },
+  };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -17,28 +29,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const related = allProducts.filter((item) => item.handle !== product.handle).slice(0, 4);
+  const meta = getProductCatalogMeta(product);
+  const related = allProducts
+    .filter((item) => item.handle !== product.handle)
+    .sort((a, b) => {
+      const am = getProductCatalogMeta(a);
+      const bm = getProductCatalogMeta(b);
+      const score = (m: typeof am) => Number(m.collection === meta.collection) * 2 + Number(m.category === meta.category);
+      return score(bm) - score(am);
+    })
+    .slice(0, 4);
 
   return (
-    <div className="lp-shell space-y-3 py-4">
-      <StatusStrip>MODULE: ITEM VIEW / NODE: {product.handle.toUpperCase()} / SOURCE: STORE.exe / MODE: DOSSIER</StatusStrip>
+    <div className="lp-shell lp-page-pad">
       <ProductDetail product={product} relatedProducts={related} />
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link
-          href="/products"
-          className="lp-focus-ring lp-log border border-[var(--lp-color-border-accent)] px-2 py-2 text-[10px] text-[var(--lp-color-primary-100)]"
-        >
-          {'>'} RETURN TO CATALOG
-        </Link>
-
-        <Link
-          href="/custom-jackets"
-          className="lp-focus-ring lp-log border border-[var(--lp-color-border-default)] px-2 py-2 text-[10px] hover:border-[var(--lp-color-border-accent)]"
-        >
-          {'>'} CUSTOM JACKETS: VIEW REQUEST TRACK
-        </Link>
-      </div>
     </div>
   );
 }

@@ -9,9 +9,9 @@ export default function SocialLinks() {
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="lp-focus-ring lp-log inline-flex min-h-[44px] items-center justify-center border border-[var(--lp-color-border-default)] px-3 py-2 text-center text-[10px] hover:border-[var(--lp-color-border-accent)] hover:text-[var(--lp-color-primary-100)]"
+          className="lp-btn"
         >
-          &gt; {link.label.toUpperCase()}
+          {link.label} <span className="lp-btn__arrow">&gt;</span>
         </a>
       ))}
     </div>

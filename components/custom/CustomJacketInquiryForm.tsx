@@ -44,11 +44,10 @@ function ChoiceBox({ name, value, type }: ChoiceBoxProps) {
   return (
     <label
       htmlFor={id}
-      className="lp-focus-ring group relative flex min-h-[46px] cursor-pointer items-center justify-center border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-3 py-2 text-center text-[11px] uppercase tracking-[0.08em] text-[var(--lp-color-text-main)] transition-colors hover:border-[var(--lp-color-border-accent)]"
+      className="lp-toggle lp-focus-ring group relative min-h-[46px] cursor-pointer px-3 py-2 text-center has-[:checked]:border-[var(--lp-color-primary-500)] has-[:checked]:bg-[rgba(142,17,17,0.22)] has-[:checked]:text-[var(--lp-color-text-strong)] has-[:focus-visible]:outline has-[:focus-visible]:outline-1 has-[:focus-visible]:outline-[var(--lp-color-primary-400)]"
     >
       <input id={id} type={type} name={name} value={value} className="peer sr-only" />
-      <span className="text-center peer-checked:text-[var(--lp-color-text-strong)]">{value}</span>
-      <span className="pointer-events-none absolute inset-0 border border-transparent peer-checked:border-[var(--lp-color-border-accent)] peer-checked:bg-[rgba(141,2,2,0.18)]" aria-hidden />
+      <span className="text-center">{value}</span>
     </label>
   );
 }
@@ -110,17 +109,16 @@ export default function CustomJacketInquiryForm() {
 
   if (submitted) {
     return (
-      <div className="space-y-2 border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.16)] p-3">
-        <p className="font-lp-ui m-0 text-[15px] uppercase leading-[1.2] text-[var(--lp-color-text-strong)]">Inquiry Received</p>
-        <p className="m-0 text-[13px] leading-[1.5] text-[var(--lp-color-text-main)]">
+      <div className="lp-panel lp-panel--accent lp-reveal space-y-2 p-4" role="status">
+        <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">Inquiry Received</p>
+        <p className="lp-body m-0">
           We manually review each custom request. Next step is a curated follow-up with jacket, print, and patch options that fit your direction.
         </p>
       </div>
     );
   }
 
-  const textInputClass =
-    'min-h-[46px] w-full border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-3 py-2 text-center text-[12px] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-dim)] focus:border-[var(--lp-color-border-accent)] focus:outline-none';
+  const textInputClass = 'lp-input';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -141,8 +139,8 @@ export default function CustomJacketInquiryForm() {
         />
       </div>
 
-      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-2">
-        <legend className="px-1 text-[10px] uppercase tracking-[0.08em] text-[var(--lp-color-text-muted)]">Jacket Size</legend>
+      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
+        <legend className="lp-label px-1 text-[var(--lp-color-primary-400)]">Jacket Size</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {JACKET_SIZES.map((value) => (
             <ChoiceBox key={value} name="jacketSize" value={value} type="radio" />
@@ -150,8 +148,8 @@ export default function CustomJacketInquiryForm() {
         </div>
       </fieldset>
 
-      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-2">
-        <legend className="px-1 text-[10px] uppercase tracking-[0.08em] text-[var(--lp-color-text-muted)]">Fit Preference</legend>
+      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
+        <legend className="lp-label px-1 text-[var(--lp-color-primary-400)]">Fit Preference</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {FIT_PREFERENCES.map((value) => (
             <ChoiceBox key={value} name="fitPreference" value={value} type="radio" />
@@ -159,8 +157,8 @@ export default function CustomJacketInquiryForm() {
         </div>
       </fieldset>
 
-      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-2">
-        <legend className="px-1 text-[10px] uppercase tracking-[0.08em] text-[var(--lp-color-text-muted)]">Color Preference</legend>
+      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
+        <legend className="lp-label px-1 text-[var(--lp-color-primary-400)]">Color Preference</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {COLOR_PREFERENCES.map((value) => (
             <ChoiceBox key={value} name="colorPreference" value={value} type="checkbox" />
@@ -169,8 +167,8 @@ export default function CustomJacketInquiryForm() {
       </fieldset>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-2">
-          <legend className="px-1 text-[10px] uppercase tracking-[0.08em] text-[var(--lp-color-text-muted)]">Prints</legend>
+        <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
+          <legend className="lp-label px-1 text-[var(--lp-color-primary-400)]">Prints</legend>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {PRINT_OPTIONS.map((value) => (
               <ChoiceBox key={value} name="prints" value={value} type="checkbox" />
@@ -178,8 +176,8 @@ export default function CustomJacketInquiryForm() {
           </div>
         </fieldset>
 
-        <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-2">
-          <legend className="px-1 text-[10px] uppercase tracking-[0.08em] text-[var(--lp-color-text-muted)]">Embroideries</legend>
+        <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
+          <legend className="lp-label px-1 text-[var(--lp-color-primary-400)]">Embroideries</legend>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {EMBROIDERY_OPTIONS.map((value) => (
               <ChoiceBox key={value} name="embroideries" value={value} type="checkbox" />
@@ -188,8 +186,8 @@ export default function CustomJacketInquiryForm() {
         </fieldset>
       </div>
 
-      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-2">
-        <legend className="px-1 text-[10px] uppercase tracking-[0.08em] text-[var(--lp-color-text-muted)]">Patches</legend>
+      <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
+        <legend className="lp-label px-1 text-[var(--lp-color-primary-400)]">Patches</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {PATCH_OPTIONS.map((value) => (
             <ChoiceBox key={value} name="patches" value={value} type="checkbox" />
@@ -201,23 +199,23 @@ export default function CustomJacketInquiryForm() {
         name="notes"
         placeholder="Notes"
         rows={4}
-        className="w-full resize-y border border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)] px-3 py-2 text-center text-[12px] text-[var(--lp-color-text-main)] placeholder:text-[var(--lp-color-text-dim)] focus:border-[var(--lp-color-border-accent)] focus:outline-none"
+        className="lp-textarea"
       />
 
-      <label className="flex items-start gap-2 border border-[var(--lp-color-border-subtle)] bg-[rgba(0,0,0,0.25)] px-3 py-2 text-[11px] text-[var(--lp-color-text-main)]">
-        <input type="checkbox" name="consent" required className="mt-[2px]" />
+      <label className="lp-body lp-body-sm flex items-start gap-3 border border-[var(--lp-color-border-subtle)] bg-[rgba(0,0,0,0.25)] px-3 py-3">
+        <input type="checkbox" name="consent" required className="mt-[3px] h-4 w-4 shrink-0 accent-[var(--lp-color-primary-500)]" />
         <span>I agree to be contacted about this custom jackets inquiry and understand all options are curated manually after submission.</span>
       </label>
 
       <button
         type="submit"
         disabled={submitting}
-        className="lp-focus-ring lp-log min-h-[44px] w-full border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.22)] px-3 py-3 text-[11px] text-[var(--lp-color-text-strong)] hover:border-[var(--lp-color-border-accent-bright)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="lp-btn lp-btn--primary lp-btn--lg lp-btn--block"
       >
         {submitting ? 'Sending Inquiry...' : 'Submit Custom Jackets Inquiry'}
       </button>
 
-      {error ? <p className="m-0 text-[11px] text-[var(--lp-color-status-alert)]">{error}</p> : null}
+      {error ? <p className="lp-warning-box lp-log m-0" role="alert">{error}</p> : null}
     </form>
   );
 }

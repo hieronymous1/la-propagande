@@ -117,7 +117,7 @@ function mapMetaobjectToArchiveEntry(node: MetaobjectNode): ArchiveEntryWithOrde
   const summary = getField(node.fields, 'summary');
   if (!title || !type || !summary) return null;
 
-  const thumbnail = getMediaField(node.fields, 'thumbnail') ?? '/images/placeholders/archive-01.svg';
+  const thumbnail = getMediaField(node.fields, 'thumbnail') ?? '/images/brand/frame-nam-01.jpg';
   const href = getField(node.fields, 'href');
 
   return {

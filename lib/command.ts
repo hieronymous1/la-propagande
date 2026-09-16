@@ -1,6 +1,7 @@
 export interface CommandSuggestion {
   label: string;
   route: string;
+  hint?: string;
 }
 
 export type ParsedCommand =
@@ -15,6 +16,7 @@ const COMMAND_ROUTES: Record<string, CommandSuggestion> = {
   '/store': { label: 'Store', route: '/products' },
   products: { label: 'Store', route: '/products' },
   '/products': { label: 'Store', route: '/products' },
+  shop: { label: 'Store', route: '/products' },
   events: { label: 'Events', route: '/blog' },
   '/events': { label: 'Events', route: '/blog' },
   blog: { label: 'Events', route: '/blog' },
@@ -24,8 +26,12 @@ const COMMAND_ROUTES: Record<string, CommandSuggestion> = {
   connect: { label: 'Connect', route: '/contact' },
   locations: { label: 'Locations', route: '/locations' },
   '/locations': { label: 'Locations', route: '/locations' },
+  showroom: { label: 'Locations', route: '/locations' },
   about: { label: 'About', route: '/about' },
   '/about': { label: 'About', route: '/about' },
+  custom: { label: 'Custom Jackets', route: '/custom-jackets' },
+  jackets: { label: 'Custom Jackets', route: '/custom-jackets' },
+  '/custom-jackets': { label: 'Custom Jackets', route: '/custom-jackets' },
   archive: { label: 'Archive', route: '/archive' },
   '/archive': { label: 'Archive', route: '/archive' },
   dir: { label: 'Archive', route: '/archive' },
@@ -36,19 +42,29 @@ const COMMAND_ROUTES: Record<string, CommandSuggestion> = {
   '/': { label: 'Home', route: '/' },
 };
 
-const CART_ALIASES = new Set(['cart', 'buffer']);
+const CART_ALIASES = new Set(['cart', 'buffer', 'bag']);
 
-const HELP_ALIASES = new Set(['help', '?']);
+const HELP_ALIASES = new Set(['help', '?', 'man']);
 
-const ROUTE_SUGGESTIONS: CommandSuggestion[] = [
-  { label: 'Store', route: '/products' },
-  { label: 'Events', route: '/blog' },
-  { label: 'Connect', route: '/contact' },
-  { label: 'Locations', route: '/locations' },
-  { label: 'About', route: '/about' },
-  { label: 'Archive', route: '/archive' },
-  { label: 'Home', route: '/' },
+export const ROUTE_SUGGESTIONS: CommandSuggestion[] = [
+  { label: 'Store', route: '/products', hint: 'store' },
+  { label: 'Events', route: '/blog', hint: 'events' },
+  { label: 'Custom Jackets', route: '/custom-jackets', hint: 'custom' },
+  { label: 'About', route: '/about', hint: 'about' },
+  { label: 'Locations', route: '/locations', hint: 'locations' },
+  { label: 'Connect', route: '/contact', hint: 'connect' },
+  { label: 'Home', route: '/', hint: 'home' },
 ];
+
+export const HIDDEN_SUGGESTIONS: CommandSuggestion[] = [{ label: 'Archive', route: '/archive', hint: 'archive' }];
+
+export const KEY_SHORTCUTS: Record<string, string> = {
+  s: '/products',
+  e: '/blog',
+  a: '/archive',
+  c: '/contact',
+  h: '/',
+};
 
 export function parseCommand(raw: string): ParsedCommand {
   const query = raw.trim().toLowerCase();
@@ -70,7 +86,7 @@ export function parseCommand(raw: string): ParsedCommand {
     return { kind: 'route', route: commandMatch.route, label: commandMatch.label };
   }
 
-  const suggestions = ROUTE_SUGGESTIONS.filter((entry) => {
+  const suggestions = [...ROUTE_SUGGESTIONS, ...HIDDEN_SUGGESTIONS].filter((entry) => {
     const label = entry.label.toLowerCase();
     const route = entry.route.toLowerCase();
     return label.includes(query) || route.includes(query);

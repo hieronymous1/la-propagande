@@ -1,57 +1,67 @@
+import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import SocialLinks from '@/components/contact/SocialLinks';
-import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
+import { PageHeader, Panel, PanelTitleBar, StatusChip } from '@/components/system/Primitives';
+
+export const metadata: Metadata = {
+  title: 'Connect',
+  description: 'Reach La Propagande on WhatsApp, Instagram or TikTok for drops, custom orders, events and showroom access in Paris and Beirut.',
+};
+
+const CHANNELS = [
+  { label: 'Drops & orders', body: 'Sizing, restocks, shipping between Paris and Beirut.' },
+  { label: 'Custom jackets', body: 'Start a build or follow up on an open request.' },
+  { label: 'Events', body: 'Pop-ups, raves, collaborations, press.' },
+  { label: 'Showrooms', body: 'Appointments in Badaro and Ashrafieh.' },
+];
 
 export default function ContactPage() {
   return (
-    <div className="lp-shell space-y-3 py-4 md:py-5">
-      <StatusStrip>MODULE: CONTACT.net / CHANNELS: OPEN / RESPONSE WINDOW: 24-72H</StatusStrip>
+    <div className="lp-shell lp-page-pad space-y-4">
+      <PageHeader module="CONNECT.net" title="Secure uplink" strip="CHANNELS OPEN · RESPONSE WINDOW 24–72H · PARIS ↔ BEIRUT" />
 
-      <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
-        <Panel>
-          <PanelTitleBar title="CONTACT US" meta="DIRECT RESPONSE" />
-          <div className="space-y-2 p-3">
-            <p className="font-lp-ui m-0 text-[18px] uppercase leading-[1.1] text-[var(--lp-color-text-strong)] md:text-[22px] lg:text-[24px]">CONTACT US</p>
-            <p className="lp-content-copy m-0 text-[13px] md:text-[14px] text-[var(--lp-color-text-main)]">
-              Use this channel for drop questions, custom order requests, event coordination, and physical access info. We reply directly with the fastest route available.
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <Panel ticks reveal={0}>
+          <PanelTitleBar title="DIRECT CHANNELS" meta="FASTEST ROUTE" />
+          <div className="space-y-5 p-4 md:p-6">
+            <p className="lp-body lp-body-lg m-0 text-[var(--lp-color-text-strong)]">
+              WhatsApp is the fastest line. Instagram and TikTok are open for everything else. We reply directly — no ticket system, no bots.
             </p>
-            <p className="lp-log m-0 max-w-[56ch] text-[10px] text-[var(--lp-color-text-main)]">SEND A MESSAGE / EXPECT A REPLY WITHIN 24-72H</p>
-          </div>
-        </Panel>
-
-        <Panel>
-          <PanelTitleBar title="DIRECT CHANNELS" meta="OPEN" />
-          <div className="space-y-3 p-3">
-            <p className="lp-log m-0 max-w-[56ch] text-[10px] text-[var(--lp-color-text-main)]">WHATSAPP, INSTAGRAM, TIKTOK, AND COMMUNITY LIVE IN ONE DIRECT CHANNEL CLUSTER.</p>
             <SocialLinks />
+            <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
+              {CHANNELS.map((channel) => (
+                <li key={channel.label} className="border-t border-[var(--lp-color-border-subtle)] pt-3">
+                  <p className="lp-label m-0 text-[var(--lp-color-primary-400)]">{channel.label}</p>
+                  <p className="lp-body lp-body-sm m-0 mt-1 text-[var(--lp-color-text-muted)]">{channel.body}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         </Panel>
-      </div>
 
-      <Panel>
-        <PanelTitleBar title="ACCESS POINTS" meta="SHOWROOMS / SELLING POINTS" />
-        <div className="space-y-3 p-3">
-          <p className="lp-content-copy m-0 text-[13px] md:text-[14px] text-[var(--lp-color-text-main)]">
-            Need a showroom appointment or the current selling-point map? Open the locations dossier for addresses, access notes, and temporary activation windows.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/locations"
-              className="lp-focus-ring lp-log inline-flex min-h-[40px] items-center border border-[var(--lp-color-border-accent)] px-3 py-2 text-[9px] md:min-h-[44px] md:text-[10px] text-[var(--lp-color-primary-100)] hover:border-[var(--lp-color-border-accent-bright)]"
-            >
-              {'>'} VIEW LOCATIONS
-            </Link>
-            <Link
-              href="https://wa.me/message/HOUXU27KJCWAA1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="lp-focus-ring lp-log inline-flex min-h-[40px] items-center border border-[var(--lp-color-border-default)] px-3 py-2 text-[9px] md:min-h-[44px] md:text-[10px] hover:border-[var(--lp-color-border-accent)] hover:text-[var(--lp-color-primary-100)]"
-            >
-              {'>'} WHATSAPP
-            </Link>
-          </div>
-        </div>
-      </Panel>
+        <Link href="/locations" className="group block lp-focus-ring">
+          <Panel interactive reveal={1} className="h-full overflow-hidden">
+            <PanelTitleBar title="ACCESS POINTS" meta="SHOWROOMS / SELLING POINTS" />
+            <div className="lp-media lp-media--zoom relative aspect-[16/10] border-0 border-b border-[var(--lp-color-border-subtle)]">
+              <Image src="/images/brand/photo-showroom-rack.webp" alt="La Propagande showroom rack" fill sizes="(max-width: 1024px) 100vw, 45vw" className="object-cover" />
+              <div className="absolute left-3 top-3 flex gap-2">
+                <StatusChip label="BADARO" dot tone="success" />
+                <StatusChip label="ASHRAFIEH" dot tone="success" />
+              </div>
+            </div>
+            <div className="flex items-end justify-between gap-4 p-4">
+              <div>
+                <p className="lp-display lp-display-md m-0 text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">Physical locations</p>
+                <p className="lp-body lp-body-sm m-0 mt-1 text-[var(--lp-color-text-muted)]">Addresses, hours, temporary activation windows.</p>
+              </div>
+              <span className="lp-btn lp-btn--sm">
+                OPEN MAP <span className="lp-btn__arrow">&gt;</span>
+              </span>
+            </div>
+          </Panel>
+        </Link>
+      </div>
     </div>
   );
 }

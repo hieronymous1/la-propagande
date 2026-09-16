@@ -1,41 +1,39 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import ProductsCatalog from '@/components/product/ProductsCatalog';
-import { Panel, PanelTitleBar, StatusStrip } from '@/components/system/Primitives';
+import { PageHeader } from '@/components/system/Primitives';
 import { getProducts } from '@/lib/queries/products';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Store',
+  description: 'Tops, bottoms, accessories and custom jackets from La Propagande. Catalog software, Paris ↔ Beirut.',
+};
 
 export default async function ProductsPage() {
   const products = await getProducts();
 
   return (
-    <div className="lp-shell py-4">
-      <Panel>
-        <PanelTitleBar title="STORE.exe" meta="CATALOG SOFTWARE" />
-        <div className="space-y-3 p-[10px]">
-          <StatusStrip>CATALOG STATUS: ACTIVE / CHECKOUT: CART / INVENTORY NODE: LP-STORE</StatusStrip>
-          <p className="m-0 max-w-[920px] text-[14px] leading-[1.5] text-[var(--lp-color-text-main)]">
-            Browse Tops, Bottoms, Accessories, and Custom Jackets. Use search, category filters, and collection filters to find item records quickly.
-          </p>
-          <Link
-            href="/custom-jackets"
-            className="lp-focus-ring block border border-[var(--lp-color-border-accent)] bg-[rgba(141,2,2,0.16)] p-3 hover:border-[var(--lp-color-border-accent-bright)]"
-          >
-            <p className="font-lp-ui m-0 text-[15px] uppercase leading-[1.2] text-[var(--lp-color-text-strong)]">Custom Jackets</p>
-            <p className="m-0 pt-1 text-[13px] text-[var(--lp-color-text-main)]">
-              One-off and small-run jackets. Review the gallery and submit a request to start your build.
-            </p>
-            <p className="lp-log m-0 pt-2 text-[10px] text-[var(--lp-color-primary-100)]">OPEN CUSTOM JACKETS &gt;</p>
-          </Link>
-        </div>
-      </Panel>
+    <div className="lp-shell lp-page-pad space-y-4">
+      <PageHeader module="STORE.exe" title="Catalog" strip={`INVENTORY NODE LP-STORE · ${products.length} RECORDS · CHECKOUT VIA CART`}>
+        <Link href="/custom-jackets" className="group lp-panel lp-panel--interactive lp-panel--accent flex items-center gap-3 p-2 pr-4 lp-focus-ring">
+          <span className="lp-media relative block h-12 w-12 shrink-0">
+            <Image src="/images/brand/photo-jacket-rack.webp" alt="" fill sizes="48px" className="object-cover" />
+          </span>
+          <span>
+            <span className="lp-label block text-[var(--lp-color-text-strong)]">Custom Jackets</span>
+            <span className="lp-log block">ONE-OFF BUILDS · OPEN REQUEST TRACK</span>
+          </span>
+          <span className="lp-btn__arrow ml-2 text-[var(--lp-color-primary-400)]">&gt;</span>
+        </Link>
+      </PageHeader>
 
-      <div className="pt-3">
-        <Suspense fallback={<p className="lp-log m-0 text-[11px]">LOADING CATALOG MODULE...</p>}>
-          <ProductsCatalog products={products} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<p className="lp-log m-0">LOADING CATALOG MODULE...</p>}>
+        <ProductsCatalog products={products} />
+      </Suspense>
     </div>
   );
 }

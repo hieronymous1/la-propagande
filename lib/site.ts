@@ -141,42 +141,42 @@ export const CUSTOM_JACKETS_GALLERY: GalleryItem[] = [
   {
     id: 'custom-001',
     title: 'Custom Run 001',
-    src: '/images/placeholders/product-01.svg',
+    src: '/images/brand/photo-jacket-rack.webp',
     alt: 'Custom jacket run 001 placeholder',
     meta: 'PATCHES + PRINTS / CURATED',
   },
   {
     id: 'custom-002',
     title: 'Custom Run 002',
-    src: '/images/placeholders/product-02.svg',
+    src: '/images/brand/photo-showroom-rack.webp',
     alt: 'Custom jacket run 002 placeholder',
     meta: 'DENIM SHELL / MIXED MEDIA',
   },
   {
     id: 'custom-003',
     title: 'Custom Run 003',
-    src: '/images/placeholders/product-03.svg',
+    src: '/images/brand/photo-popup-rack.webp',
     alt: 'Custom jacket run 003 placeholder',
     meta: 'FIELD JACKET / REWORK',
   },
   {
     id: 'custom-004',
     title: 'Custom Run 004',
-    src: '/images/placeholders/product-04.svg',
+    src: '/images/brand/photo-camo-hat.webp',
     alt: 'Custom jacket run 004 placeholder',
     meta: 'OVERSIZED FIT / SIGNAL PRINT',
   },
   {
     id: 'custom-005',
     title: 'Custom Run 005',
-    src: '/images/placeholders/product-05.svg',
+    src: '/images/brand/photo-bags.webp',
     alt: 'Custom jacket run 005 placeholder',
     meta: 'VINTAGE BASE / PATCH GRID',
   },
   {
     id: 'custom-006',
     title: 'Custom Run 006',
-    src: '/images/placeholders/product-06.svg',
+    src: '/images/brand/photo-tee-back.webp',
     alt: 'Custom jacket run 006 placeholder',
     meta: 'MIXED PATCH SET / MANUAL CONFIRM',
   },
@@ -810,7 +810,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     type: 'REPORT',
     status: 'LOCKED',
     summary: 'Summary of CIA experiments on mind control.',
-    thumbnail: '/images/placeholders/archive-01.svg',
+    thumbnail: '/images/brand/frame-cbs-1970.jpg',
   },
   {
     id: 'arc-002',
@@ -819,7 +819,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     type: 'REPORT',
     status: 'AVAILABLE',
     summary: 'CIA report on the death of Che Guevara.',
-    thumbnail: '/images/placeholders/archive-02.svg',
+    thumbnail: '/images/brand/frame-zapruder.jpg',
   },
   {
     id: 'arc-003',
@@ -828,7 +828,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     type: 'DOSSIER',
     status: 'LOCKED',
     summary: 'Proposed false flag operation to spark war in Cuba.',
-    thumbnail: '/images/placeholders/archive-03.svg',
+    thumbnail: '/images/brand/frame-nam-01.jpg',
   },
   {
     id: 'arc-004',
@@ -838,7 +838,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Summary of CIA experimentation on mind control techniques presented to the Select Committee of Intelligence.',
     href: 'https://www.intelligence.senate.gov/wp-content/uploads/2024/08/sites-default-files-hearings-95mkultra.pdf',
-    thumbnail: '/images/placeholders/archive-04.svg',
+    thumbnail: '/images/brand/frame-tunisia-01.jpg',
   },
   {
     id: 'arc-005',
@@ -848,7 +848,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Essay critic of "dotcom neoliberalism".',
     href: 'https://monoskop.org/images/d/dc/Barbrook_Richard_Cameron_Andy_1996_The_Californian_Ideology.pdf',
-    thumbnail: '/images/placeholders/archive-05.svg',
+    thumbnail: '/images/brand/frame-moon.jpg',
   },
   {
     id: 'arc-006',
@@ -858,7 +858,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Artificial Intelligence predictions from 1945.',
     href: 'https://worrydream.com/refs/Bush%20-%20As%20We%20May%20Think%20(Life%20Magazine%209-10-1945).pdf',
-    thumbnail: '/images/placeholders/archive-06.svg',
+    thumbnail: '/images/brand/frame-nam-02.jpg',
   },
   {
     id: 'arc-007',
@@ -868,7 +868,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Socialist-Feminist essay on the internet era.',
     href: 'https://warwick.ac.uk/fac/arts/english/currentstudents/undergraduates/modules/fictionnownarrativemediaandtheoryinthe21stcentury/manifestly_haraway_----_a_cyborg_manifesto_science_technology_and_socialist-feminism_in_the_....pdf',
-    thumbnail: '/images/placeholders/archive-07.svg',
+    thumbnail: '/images/brand/frame-cctv.jpg',
   },
   {
     id: 'arc-008',
@@ -878,7 +878,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Privacy and security in the modern age. Foundational document for the cypherpunk movement.',
     href: 'https://www.activism.net/cypherpunk/manifesto.html',
-    thumbnail: '/images/placeholders/archive-08.svg',
+    thumbnail: '/images/brand/frame-tunisia-02.jpg',
   },
   {
     id: 'arc-009',
@@ -888,7 +888,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Sail the seas.',
     href: 'https://easyussr.neocities.org/torrenting',
-    thumbnail: '/images/placeholders/archive-09.svg',
+    thumbnail: '/images/brand/photo-street-sign.webp',
   },
   {
     id: 'arc-010',
@@ -898,7 +898,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Open Source Intelligence basics guide.',
     href: 'https://osintframework.com',
-    thumbnail: '/images/placeholders/archive-10.svg',
+    thumbnail: '/images/brand/photo-popup-rack.webp',
   },
   {
     id: 'arc-011',
@@ -908,7 +908,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Public archive for books, broadcasts, and recovered media.',
     href: 'https://archive.org',
-    thumbnail: '/images/placeholders/archive-11.svg',
+    thumbnail: '/images/brand/photo-night-fire-2.webp',
   },
   {
     id: 'arc-012',
@@ -918,7 +918,7 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'MIRROR',
     summary: 'Mirror index for leaked records, cables, and searchable source material.',
     href: 'https://wikileaks.org',
-    thumbnail: '/images/placeholders/archive-12.svg',
+    thumbnail: '/images/brand/sigil-square.webp',
   },
 ];
 
