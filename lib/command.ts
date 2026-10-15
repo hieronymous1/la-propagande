@@ -17,13 +17,13 @@ const COMMAND_ROUTES: Record<string, CommandSuggestion> = {
   products: { label: 'Store', route: '/products' },
   '/products': { label: 'Store', route: '/products' },
   shop: { label: 'Store', route: '/products' },
-  events: { label: 'Events', route: '/blog' },
-  '/events': { label: 'Events', route: '/blog' },
-  blog: { label: 'Events', route: '/blog' },
-  '/blog': { label: 'Events', route: '/blog' },
-  contact: { label: 'Connect', route: '/contact' },
-  '/contact': { label: 'Connect', route: '/contact' },
-  connect: { label: 'Connect', route: '/contact' },
+  events: { label: 'Blog', route: '/blog' },
+  '/events': { label: 'Blog', route: '/blog' },
+  blog: { label: 'Blog', route: '/blog' },
+  '/blog': { label: 'Blog', route: '/blog' },
+  contact: { label: 'Contact us', route: '/contact' },
+  '/contact': { label: 'Contact us', route: '/contact' },
+  connect: { label: 'Contact us', route: '/contact' },
   locations: { label: 'Locations', route: '/locations' },
   '/locations': { label: 'Locations', route: '/locations' },
   showroom: { label: 'Locations', route: '/locations' },
@@ -48,11 +48,11 @@ const HELP_ALIASES = new Set(['help', '?', 'man']);
 
 export const ROUTE_SUGGESTIONS: CommandSuggestion[] = [
   { label: 'Store', route: '/products', hint: 'store' },
-  { label: 'Events', route: '/blog', hint: 'events' },
+  { label: 'Blog', route: '/blog', hint: 'blog' },
   { label: 'Custom Jackets', route: '/custom-jackets', hint: 'custom' },
   { label: 'About', route: '/about', hint: 'about' },
   { label: 'Locations', route: '/locations', hint: 'locations' },
-  { label: 'Connect', route: '/contact', hint: 'connect' },
+  { label: 'Contact us', route: '/contact', hint: 'contact' },
   { label: 'Home', route: '/', hint: 'home' },
 ];
 
@@ -60,6 +60,7 @@ export const HIDDEN_SUGGESTIONS: CommandSuggestion[] = [{ label: 'Archive', rout
 
 export const KEY_SHORTCUTS: Record<string, string> = {
   s: '/products',
+  b: '/blog',
   e: '/blog',
   a: '/archive',
   c: '/contact',

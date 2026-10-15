@@ -8,6 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from 'react';
+import { COMMERCE_ENABLED } from '@/lib/commerce';
 import type { Cart } from '@/lib/types';
 
 interface CartContextType {
@@ -75,6 +76,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Hydrate or create cart on mount
   useEffect(() => {
+    if (!COMMERCE_ENABLED) {
+      localStorage.removeItem('lp_cart_id');
+      return;
+    }
     let isMounted = true;
     async function initCart() {
       try {
@@ -110,7 +115,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = useCallback(
     async (merchandiseId: string, quantity: number) => {
-      if (!cartId) return;
+      if (!COMMERCE_ENABLED || !cartId) return;
       try {
         const updated = await mutateCartLines({
           action: 'add',
@@ -127,7 +132,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = useCallback(
     async (lineId: string, quantity: number) => {
-      if (!cartId) return;
+      if (!COMMERCE_ENABLED || !cartId) return;
       try {
         if (quantity === 0) {
           const updated = await mutateCartLines({
@@ -153,7 +158,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = useCallback(
     async (lineId: string) => {
-      if (!cartId) return;
+      if (!COMMERCE_ENABLED || !cartId) return;
       try {
         const updated = await mutateCartLines({
           action: 'remove',

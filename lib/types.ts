@@ -70,6 +70,7 @@ export interface Article {
   publishedAt: string;
   image: ShopifyImage | null;
   lpGallery?: ShopifyImage[];
+  instagramUrl?: string;
   lpMeta?: ArticleMeta;
   tags: string[];
   author: { name: string };

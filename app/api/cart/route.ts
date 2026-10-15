@@ -1,3 +1,4 @@
+import { COMMERCE_ENABLED, DEMO_MESSAGE } from '@/lib/commerce';
 import { NextResponse } from 'next/server';
 import { isAllowedRequestOrigin, normalizeCartId } from '@/lib/cart-validation';
 import { createCart, getCart } from '@/lib/queries/cart';
@@ -12,6 +13,10 @@ function rejectCrossSite(request: Request): NextResponse | null {
 }
 
 export async function POST(request: Request) {
+  if (!COMMERCE_ENABLED) {
+    return NextResponse.json({ error: DEMO_MESSAGE }, { status: 403 });
+  }
+
   const originError = rejectCrossSite(request);
   if (originError) return originError;
 
@@ -25,6 +30,10 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  if (!COMMERCE_ENABLED) {
+    return NextResponse.json({ error: DEMO_MESSAGE }, { status: 403 });
+  }
+
   const url = new URL(request.url);
   const id = normalizeCartId(url.searchParams.get('id'));
 

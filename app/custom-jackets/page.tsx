@@ -25,13 +25,14 @@ export default function CustomJacketsPage() {
           READY-MADE JACKETS <span className="lp-btn__arrow">&gt;</span>
         </Link>
       </PageHeader>
+      <Image src="/images/client/born-from-revolt.webp" alt="Born from revolt, raised in war. La Propagande custom jacket artwork." width={1995} height={1200} sizes="(max-width: 768px) 100vw, 960px" className="mx-auto h-auto w-full max-w-[960px]" />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Panel ticks reveal={0} className="overflow-hidden">
           <div className="lp-media relative aspect-[4/3] border-0 border-b border-[var(--lp-color-border-subtle)]">
             <Image src="/images/brand/photo-jacket-rack.webp" alt="Rack of custom military jackets with patches at the showroom" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" priority />
             <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,transparent,rgba(5,5,5,0.92))] p-4 md:p-6">
-              <p className="lp-display lp-display-md m-0 text-[var(--lp-color-text-strong)]">Vintage shells. Your prints. One build.</p>
+              <p className="lp-title lp-title-lg m-0 text-[var(--lp-color-text-strong)]">Vintage shells. Your prints. One build.</p>
             </div>
           </div>
           <div className="p-4 md:p-6">

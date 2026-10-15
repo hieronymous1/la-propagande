@@ -138,6 +138,36 @@ Important: the Archive is not managed from Blog Posts. It uses a separate conten
 - `behavior`: optional special card behavior
 - `sort_order`: card order
 
+## About page
+
+Marc can edit the About page through Shopify; no code editor is needed.
+
+1. In Shopify Admin, open `Content > Metaobjects > About Section` (type `about_section`, unless the site has configured a different type).
+2. Open an entry such as `Vision`, `Mission`, or `Purpose`.
+3. Edit `Label` for the card heading and `Body` for its text. Body is plain text and supports line breaks.
+4. Use `Sort Order` to arrange the cards (1, 2, 3...). Save the entry.
+5. If Shopify shows a status selector, set it to `Active` so the storefront can read the entry.
+6. Reload `/about` to check the published result.
+
+To edit the large introduction at the top of About, add two entries using the same definition:
+
+| Label (exact text) | Body controls |
+| --- | --- |
+| `Intro heading` | Large introductory heading |
+| `Intro` | Introductory paragraph |
+
+These two entries appear in the hero, rather than as extra cards. The introduction on the home page is separate. About images and decorative artwork remain managed by the site team.
+
+If `About Section` is missing, the site team must provision the existing CMS schema with `npm run shopify:setup-cms` using the store's Admin API credentials. The definition must grant Storefront access (`PUBLIC_READ`), and the Storefront token must have permission to read metaobjects. This setup is an administrator task, not part of Marc's routine edits.
+
+## Locations and online platforms
+
+The October client revision replaces the former Afkart and Mzaar pop-ups with **Fearlove Vintage Shop, St Lois Street, Beirut, Lebanon**. Showrooms continue reading Shopify `location_entry` entries where available. Online platforms are Doora app (Lebanon / MENA region), Sookit.co, BuyBuy lb (Lebanon), and Xhawi (Oman).
+
+Selling points currently use the approved site list to prevent old Shopify entries from restoring expired pop-ups. To move selling points back to Shopify editing, the site team must first remove/archive the obsolete selling point entries, add Fearlove with `kind` = `selling_point`, and then configure `SHOPIFY_SELLING_POINTS_SOURCE=cms` in the deployed environment. Subsequent entries can be edited under `Content > Metaobjects > Location Entry` using `title`, `kind`, `address`, optional `note`, `date_range`, `hours`, and `sort_order`. The setup seed now creates Fearlove for new configurations; existing obsolete entries must still be archived manually.
+
+Only Sookit.co has a client-provided website address; the other apps are listed as text until Marc supplies their official links.
+
 ## Contact / Direct Channels
 - Current WhatsApp and social links are hard-coded in the site.
 - If you want those editable in Shopify too, that would be a separate CMS change.

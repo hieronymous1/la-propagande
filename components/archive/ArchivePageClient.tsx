@@ -58,6 +58,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
   const router = useRouter();
   const searchParams = useSearchParams();
   const [accessChecked, setAccessChecked] = useState(false);
+  const [denied, setDenied] = useState(false);
   const [folder, setFolder] = useState<ArchiveFolder>('all');
   const [restored, setRestored] = useState<Set<string>>(new Set());
   const [repaired, setRepaired] = useState<Set<string>>(new Set());
@@ -77,7 +78,10 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
       if (isTerminalEntry) router.replace('/archive', { scroll: false });
       return;
     }
-    router.replace('/', { scroll: false });
+    // no token: say so, then fall back to root where the index panel lives
+    setDenied(true);
+    const id = window.setTimeout(() => router.replace('/', { scroll: false }), 2200);
+    return () => window.clearTimeout(id);
   }, [router, searchParams]);
 
   // recovery scan ticks up towards 24%
@@ -108,8 +112,19 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
 
   if (!accessChecked) {
     return (
-      <div className="lp-shell lp-page-pad">
-        <p className="lp-log m-0">CHECKING ACCESS TOKEN…</p>
+      <div className="lp-shell lp-page-pad flex min-h-[60vh] items-center justify-center">
+        <Panel ticks accent className="w-full max-w-[520px]">
+          <PanelTitleBar title={denied ? 'ACCESS DENIED' : 'ARCHIVE.sys'} meta={denied ? 'TOKEN MISSING' : 'HANDSHAKE'} />
+          <div className="space-y-3 p-4" role="status" aria-live="polite">
+            <p className="lp-log m-0">&gt; CHECKING ACCESS TOKEN…</p>
+            {denied ? (
+              <>
+                <p className="lp-log lp-command-output m-0 text-[var(--lp-color-primary-300)]">&gt; NO TOKEN ON THIS SESSION · ROUTING TO ROOT</p>
+                <p className="lp-body lp-body-sm m-0 text-[var(--lp-color-text-muted)]">The archive opens from the index panel on the root console, or type <span className="text-[var(--lp-color-text-strong)]">archive</span> in the command line.</p>
+              </>
+            ) : null}
+          </div>
+        </Panel>
       </div>
     );
   }
@@ -241,7 +256,11 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
                   {isRepairable ? (
                     <button
                       type="button"
-                      onClick={() => setRepaired((current) => new Set(current).add(entry.id))}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        setRepaired((current) => new Set(current).add(entry.id));
+                      }}
                       className="lp-label absolute inset-0 flex items-center justify-center bg-[rgba(5,5,5,0.55)] text-[var(--lp-color-primary-300)] backdrop-blur-[2px] transition-colors hover:bg-[rgba(142,17,17,0.35)]"
                     >
                       CORRUPTION DETECTED · TAP TO REPAIR
@@ -250,15 +269,19 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
                   {isDelayed ? (
                     <button
                       type="button"
-                      onClick={() => setRestored((current) => new Set(current).add(entry.id))}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        setRestored((current) => new Set(current).add(entry.id));
+                      }}
                       onMouseEnter={() => window.setTimeout(() => setRestored((current) => new Set(current).add(entry.id)), 700)}
                       className="lp-label absolute inset-0 flex items-center justify-center bg-[rgba(5,5,5,0.5)] text-[var(--lp-color-text-strong)]"
                     >
                       SCANNING… TAP TO RESTORE
                     </button>
                   ) : null}
-                  <span className="lp-chip absolute left-2 top-2 bg-[rgba(5,5,5,0.7)]">{entry.type}</span>
-                  <span className="lp-chip absolute right-2 top-2 bg-[rgba(5,5,5,0.7)]" data-tone={statusTone(entry.status)}>
+                  <span className="lp-chip absolute left-0 top-0 z-[2] border-l-0 border-t-0">{entry.type}</span>
+                  <span className="lp-chip absolute right-0 top-0 z-[2] border-r-0 border-t-0" data-tone={statusTone(entry.status)}>
                     {entry.status}
                   </span>
                 </div>
@@ -266,7 +289,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
 
               const body = (
                 <div className="space-y-2 p-3">
-                  <h3 className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">{isDelayed ? 'UNINDEXED FILE' : entry.title}</h3>
+                  <h3 className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">{isDelayed ? 'UNINDEXED FILE' : entry.title}</h3>
                   <p className="lp-body lp-body-sm m-0 text-[var(--lp-color-text-muted)]">{isDelayed ? 'Hidden during the initial pass. Restore to read.' : entry.summary}</p>
                   <p className="lp-log m-0">
                     /archive/{entry.folder} · {entry.href ? (external ? 'EXTERNAL LINK' : 'INTERNAL PATH') : 'LOCAL PREVIEW'}
@@ -294,9 +317,23 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
               }
 
               return (
-                <button key={entry.id} type="button" onClick={() => handleEntryAction(entry)} className="block w-full text-left lp-focus-ring" aria-label={`${entry.title} — ${entry.status}`}>
+                <div
+                  key={entry.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleEntryAction(entry)}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleEntryAction(entry);
+                    }
+                  }}
+                  className="block w-full cursor-pointer text-left lp-focus-ring"
+                  aria-label={`${entry.title}, ${entry.status}`}
+                >
                   {card}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -336,7 +373,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
               <PanelTitleBar title="LOCKED FILE" meta={teaser.type} />
               <div className="space-y-3 p-4">
                 <p className="lp-label m-0 text-[var(--lp-color-status-warning)]">PERMISSION LEVEL TOO LOW</p>
-                <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">{teaser.title}</p>
+                <p className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">{teaser.title}</p>
                 <p className="lp-body lp-body-sm m-0">This file is locked pending restoration. A preview index will appear in the next recovery cycle.</p>
                 <button onClick={() => setTeaser(null)} className="lp-btn lp-btn--sm">
                   CLOSE

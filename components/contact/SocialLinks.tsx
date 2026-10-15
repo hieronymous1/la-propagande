@@ -7,8 +7,7 @@ export default function SocialLinks() {
         <a
           key={link.label}
           href={link.href}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...(link.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
           className="lp-btn"
         >
           {link.label} <span className="lp-btn__arrow">&gt;</span>

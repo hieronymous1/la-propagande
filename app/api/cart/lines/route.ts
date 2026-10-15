@@ -1,3 +1,4 @@
+import { COMMERCE_ENABLED, DEMO_MESSAGE } from '@/lib/commerce';
 import { NextResponse } from 'next/server';
 import {
   isAllowedRequestOrigin,
@@ -24,6 +25,10 @@ interface CartLinesPayload {
 }
 
 export async function POST(request: Request) {
+  if (!COMMERCE_ENABLED) {
+    return NextResponse.json({ error: DEMO_MESSAGE }, { status: 403 });
+  }
+
   const origin = request.headers.get('origin');
   if (!isAllowedRequestOrigin(origin, getSiteOrigin())) {
     return NextResponse.json({ error: 'Request origin is not allowed' }, { status: 403 });

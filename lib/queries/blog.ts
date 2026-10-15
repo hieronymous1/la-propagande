@@ -2,6 +2,7 @@ import { shopifyFetch } from '../shopify';
 import { ensurePlaceholderPosts, EVENT_FALLBACK_POSTS, getFallbackArticle, normalizeArticleForTransmission } from '../site';
 import { sanitizeRichHtml, shouldUseShopifyFallbacks } from '../runtime';
 import type { Article } from '../types';
+import { getInstagramPostUrl } from '../audience';
 
 const CONTENT_NAMESPACE = process.env.SHOPIFY_CONTENT_NAMESPACE || 'lap';
 
@@ -54,6 +55,9 @@ const ARTICLE_FIELDS = `
       }
     }
   }
+  instagramMeta: metafield(namespace: "${CONTENT_NAMESPACE}", key: "instagram_url") {
+    value
+  }
 `;
 
 interface MetafieldValue {
@@ -85,6 +89,7 @@ type RawArticle = Article & {
   locationMeta?: MetafieldValue | null;
   sourceMeta?: MetafieldValue | null;
   galleryMeta?: GalleryMetafield | null;
+  instagramMeta?: MetafieldValue | null;
 };
 
 interface GetBlogPostsData {
@@ -147,6 +152,7 @@ function withLpMeta(article: RawArticle): Article {
     excerpt: buildExcerpt(article),
     contentHtml: sanitizeRichHtml(article.contentHtml),
     lpGallery,
+    instagramUrl: getInstagramPostUrl(fieldValue(article.instagramMeta) ?? article.tags.find((tag) => tag.startsWith('instagram:'))?.slice('instagram:'.length).trim()),
     lpMeta: {
       transmissionId: transmissionId ?? article.lpMeta?.transmissionId ?? article.id.toUpperCase(),
       channel: channel ?? article.lpMeta?.channel ?? article.tags[0] ?? 'BULLETIN',

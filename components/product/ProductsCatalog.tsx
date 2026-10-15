@@ -68,9 +68,9 @@ function normalizeString(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function FilterButton({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
+function FilterButton({ active, children, onClick, label }: { active: boolean; children: React.ReactNode; onClick: () => void; label?: string }) {
   return (
-    <button type="button" onClick={onClick} className="lp-toggle lp-focus-ring" aria-pressed={active}>
+    <button type="button" onClick={onClick} className="lp-toggle lp-toggle--fill lp-focus-ring" aria-pressed={active} aria-label={label}>
       {children}
     </button>
   );
@@ -211,9 +211,9 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   const filterPanel = (
     <Panel>
       <PanelTitleBar title="FILTERS" meta={activeFilterCount ? `${activeFilterCount} ACTIVE` : 'CATALOG CONTROLS'} />
-      <div className="space-y-4 p-3">
-        <label className="block space-y-1">
-          <span className="lp-log block">SEARCH</span>
+      <div className="space-y-5 p-3">
+        <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">SEARCH</span>
           <span className="lp-field">
             <span className="lp-field__prefix">&gt;</span>
             <input
@@ -326,11 +326,11 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
           ))}
         </FilterGroup>
 
-        <FilterGroup label="SORT">
+        <FilterGroup label="SORT" columns={3}>
           {[
             { value: 'latest', label: 'NEWEST' },
-            { value: 'low-high', label: 'PRICE ↑' },
-            { value: 'high-low', label: 'PRICE ↓' },
+            { value: 'low-high', label: 'LOW-HIGH' },
+            { value: 'high-low', label: 'HIGH-LOW' },
           ].map((item) => (
             <FilterButton
               key={item.value}
@@ -376,12 +376,12 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
           <p className="lp-log m-0" aria-live="polite">
             {isPending ? 'UPDATING CATALOG…' : `${filteredProducts.length} RECORD${filteredProducts.length === 1 ? '' : 'S'}${activeFilterCount ? ` · ${activeFilterCount} FILTER${activeFilterCount === 1 ? '' : 'S'}` : ''}`}
           </p>
-          <div className="flex gap-1 md:hidden" role="group" aria-label="Grid density">
-            <FilterButton active={mobileColumns === 2} onClick={() => setMobileColumns(2)}>
-              ▦
+          <div className="grid w-[96px] grid-cols-2 gap-1 md:hidden" role="group" aria-label="Grid density">
+            <FilterButton active={mobileColumns === 2} onClick={() => setMobileColumns(2)} label="Two columns">
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden fill="currentColor"><rect x="1" y="1" width="6" height="6" /><rect x="9" y="1" width="6" height="6" /><rect x="1" y="9" width="6" height="6" /><rect x="9" y="9" width="6" height="6" /></svg>
             </FilterButton>
-            <FilterButton active={mobileColumns === 1} onClick={() => setMobileColumns(1)}>
-              ▬
+            <FilterButton active={mobileColumns === 1} onClick={() => setMobileColumns(1)} label="One column">
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden fill="currentColor"><rect x="1" y="1" width="14" height="6" /><rect x="1" y="9" width="14" height="6" /></svg>
             </FilterButton>
           </div>
         </div>
@@ -408,11 +408,11 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterGroup({ label, children, columns = 2 }: { label: string; children: React.ReactNode; columns?: 2 | 3 }) {
   return (
-    <div className="space-y-1">
-      <p className="lp-log m-0">{label}</p>
-      <div className="flex flex-wrap gap-1">{children}</div>
-    </div>
+    <fieldset className="m-0 space-y-[6px] border-0 p-0">
+      <legend className="lp-log mb-[6px] p-0 text-[var(--lp-color-text-muted)]">{label}</legend>
+      <div className={`grid gap-1 ${columns === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>{children}</div>
+    </fieldset>
   );
 }

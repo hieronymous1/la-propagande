@@ -14,18 +14,18 @@ const TICKER = [
 const ROUTES: [string, string][] = [
   ['Store', '/products'],
   ['Custom Jackets', '/custom-jackets'],
-  ['Events', '/blog'],
+  ['Blog', '/blog'],
   ['About', '/about'],
   ['Locations', '/locations'],
-  ['Connect', '/contact'],
+  ['Contact us', '/contact'],
 ];
 
 export default function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer className="mt-10 border-t border-[var(--lp-color-border-accent)] bg-[var(--lp-color-bg-absolute)]">
-      <div className="lp-ticker border-b border-[var(--lp-color-border-subtle)] py-2" aria-hidden="true">
-        <div className="lp-ticker__track lp-label text-[var(--lp-color-primary-400)]">
+      <div className="lp-ticker border-b border-[var(--lp-color-border-subtle)] py-3" aria-hidden="true">
+        <div className="lp-ticker__track lp-title text-[17px] text-[var(--lp-color-primary-400)]">
           {[...TICKER, ...TICKER].map((line, i) => (
             <span key={`${line}-${i}`} className="flex items-center gap-10">
               {line}
@@ -37,9 +37,9 @@ export default function Footer() {
 
       <div className="lp-shell grid gap-6 py-8 md:grid-cols-[1.4fr_1fr_1fr] md:gap-10">
         <div className="space-y-3">
-          <Link href="/" className="inline-flex items-center gap-3 lp-focus-ring">
+          <Link href="/" className="inline-flex min-h-[44px] items-center gap-3 lp-focus-ring">
             <Image src="/images/lp-logo-red.png" alt="" width={40} height={40} className="h-[36px] w-[36px] object-contain" />
-            <span className="lp-display lp-display-sm text-[var(--lp-color-text-strong)]">La Propagande</span>
+            <span className="lp-title lp-title-md text-[var(--lp-color-text-strong)]">La Propagande</span>
           </Link>
           <p className="lp-body lp-body-sm m-0 max-w-[40ch] text-[var(--lp-color-text-muted)]">
             Born from revolt and war. A cultural archive that also contains a store, events and a network of nodes between Paris and Beirut.
@@ -52,7 +52,7 @@ export default function Footer() {
           <ul className="m-0 list-none space-y-1 p-0">
             {ROUTES.map(([label, href]) => (
               <li key={href}>
-                <Link href={href} className="lp-ui inline-flex min-h-[32px] items-center gap-2 text-[var(--lp-color-text-muted)] transition-colors duration-150 hover:text-[var(--lp-color-text-strong)]">
+                <Link href={href} className="lp-ui inline-flex min-h-[32px] items-center lp-tap gap-2 text-[var(--lp-color-text-muted)] transition-colors duration-150 hover:text-[var(--lp-color-text-strong)]">
                   <span className="text-[var(--lp-color-primary-600)]">&gt;</span> {label}
                 </Link>
               </li>
@@ -65,7 +65,7 @@ export default function Footer() {
           <ul className="m-0 list-none space-y-1 p-0">
             {FOOTER_LINKS.map(({ label, href }) => (
               <li key={label}>
-                <a href={href} target="_blank" rel="noopener noreferrer" className="lp-ui inline-flex min-h-[32px] items-center gap-2 text-[var(--lp-color-text-muted)] transition-colors duration-150 hover:text-[var(--lp-color-text-strong)]">
+                <a href={href} target="_blank" rel="noopener noreferrer" className="lp-ui inline-flex min-h-[32px] items-center lp-tap gap-2 text-[var(--lp-color-text-muted)] transition-colors duration-150 hover:text-[var(--lp-color-text-strong)]">
                   <span className="text-[var(--lp-color-primary-600)]">&gt;</span> {label}
                 </a>
               </li>
@@ -77,7 +77,7 @@ export default function Footer() {
               ['PRIVACY', '/privacy'],
               ['RETURNS', '/returns'],
             ].map(([label, href]) => (
-              <Link key={href} href={href} className="lp-log inline-flex min-h-[32px] items-center hover:text-[var(--lp-color-text-strong)]">
+              <Link key={href} href={href} className="lp-log inline-flex min-h-[32px] items-center lp-tap hover:text-[var(--lp-color-text-strong)]">
                 {label}
               </Link>
             ))}

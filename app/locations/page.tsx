@@ -5,7 +5,7 @@ import { MetaList, PageHeader, Panel, PanelTitleBar, StatusChip } from '@/compon
 
 export const metadata: Metadata = {
   title: 'Locations',
-  description: 'La Propagande showrooms in Badaro and Ashrafieh, plus pop-up selling points and activation windows.',
+  description: 'La Propagande showrooms in Badaro and Ashrafieh, Fearlove Vintage Shop in Beirut, and online platforms across Lebanon and Oman.',
 };
 
 export default async function LocationsPage() {
@@ -15,7 +15,7 @@ export default async function LocationsPage() {
 
   return (
     <div className="lp-shell lp-page-pad space-y-4">
-      <PageHeader module="ACCESS.map" title="Physical locations" strip={`${showrooms.length} SHOWROOMS · ${sellingPoints.length} SELLING POINTS · LIVE WINDOWS`} />
+      <PageHeader module="ACCESS.map" title="Find La Propagande" strip={`${showrooms.length} SHOWROOMS · ${sellingPoints.length} SELLING POINTS · 4 ONLINE PLATFORMS`} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="space-y-3" aria-labelledby="showrooms">
@@ -67,6 +67,26 @@ export default async function LocationsPage() {
           ))}
         </section>
       </div>
+
+      <section className="space-y-3" aria-labelledby="online-platforms">
+        <h2 id="online-platforms" className="lp-label m-0 text-[var(--lp-color-primary-400)]">Online Platforms / Apps</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { title: 'Doora app', region: 'Lebanon / MENA region' },
+            { title: 'Sookit.co', region: undefined, href: 'https://sookit.co' },
+            { title: 'BuyBuy lb', region: 'Lebanon' },
+            { title: 'Xhawi', region: 'Oman' },
+          ].map((platform, index) => (
+            <Panel key={platform.title} reveal={index + 3}>
+              <PanelTitleBar title={platform.title} />
+              <div className="space-y-3 p-4">
+                {platform.region ? <p className="lp-body m-0">{platform.region}</p> : null}
+                {platform.href ? <a href={platform.href} target="_blank" rel="noopener noreferrer" className="lp-btn lp-btn--sm">VISIT PLATFORM <span className="lp-btn__arrow">&gt;</span></a> : null}
+              </div>
+            </Panel>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

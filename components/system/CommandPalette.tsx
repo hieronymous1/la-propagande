@@ -165,7 +165,7 @@ export function PaletteProvider({ children }: { children: React.ReactNode }) {
     }
     const parsed = parseCommand(query);
     if (parsed.kind === 'help') {
-      setOutput('COMMANDS: STORE, EVENTS, CUSTOM, ABOUT, LOCATIONS, CONNECT, CART, HOME. KEYS: S E A C H, ⌘K, /');
+      setOutput('COMMANDS: STORE, BLOG, CUSTOM, ABOUT, LOCATIONS, CONTACT, CART, HOME. KEYS: S B A C H, ⌘K, /');
       return;
     }
     if (parsed.kind === 'cart') {

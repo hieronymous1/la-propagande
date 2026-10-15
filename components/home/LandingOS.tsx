@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { usePalette } from '@/components/system/CommandPalette';
 import { CommandText, Panel, PanelTitleBar, StatusChip } from '@/components/system/Primitives';
 
 interface FeaturedProduct {
@@ -23,6 +22,7 @@ interface QueueItem {
   channel: string;
   location: string;
   image: string | null;
+  live: boolean;
 }
 
 interface LandingOSProps {
@@ -31,18 +31,18 @@ interface LandingOSProps {
   counts: { products: number; posts: number };
 }
 
-const BOOT_LINES = ['INITIALIZING LP.NODE', 'AUTH CHECK COMPLETE', 'MOUNTING /STORE /EVENTS /ARCHIVE', 'EXTERNAL SIGNAL LOCKED', 'READY'] as const;
+const BOOT_LINES = ['INITIALIZING LP.NODE', 'AUTH CHECK COMPLETE', 'MOUNTING /STORE /BLOG /ARCHIVE', 'EXTERNAL SIGNAL LOCKED', 'READY'] as const;
 
 const PRIMARY_COMMANDS = [
   { label: 'ENTER STORE', route: '/products', exec: 'STORE.exe', key: 'S' },
-  { label: 'VIEW EVENTS', route: '/blog', exec: 'EVENTS.log', key: 'E' },
+  { label: 'VIEW BLOG', route: '/blog', exec: 'BLOG.log', key: 'B' },
   { label: 'ABOUT', route: '/about', exec: 'ABOUT.sys', key: '' },
-  { label: 'CONNECT', route: '/contact', exec: 'CONNECT.net', key: 'C' },
+  { label: 'CONTACT US', route: '/contact', exec: 'CONTACT.net', key: 'C' },
 ] as const;
 
 const NODE_STRIP = ['NODE-17 PARIS', 'NODE-03 BEIRUT', 'MIRROR WEST-2', 'GATEWAY LP_EXT'];
 
-const DIRECTORY = ['/root', '├─ /store', '│  ├─ /tops', '│  ├─ /bottoms', '│  ├─ /accessories', '│  └─ /custom-jackets', '├─ /events', '├─ /about', '├─ /locations', '├─ /connect', '└─ /archive  [restricted]'];
+const DIRECTORY = ['/root', '├─ /store', '│  ├─ /tops', '│  ├─ /bottoms', '│  ├─ /accessories', '│  └─ /custom-jackets', '├─ /blog', '├─ /about', '├─ /locations', '├─ /contact', '└─ /archive  [restricted]'];
 
 const SLOGANS = [
   '/images/brand/slogan-designed.webp',
@@ -54,6 +54,63 @@ const SLOGANS = [
   '/images/brand/slogan-movements-sold.webp',
   '/images/brand/slogan-lied-to.webp',
 ];
+
+/* the label's own photography, cut into the console like a monitored feed */
+const FEED = [
+  { src: '/images/brand/photo-tee-back.webp', caption: 'SIGIL TEE · BACK' },
+  { src: '/images/brand/photo-night-fire-1.webp', caption: 'POP-UP · AFTER DARK' },
+  { src: '/images/brand/photo-showroom-rack.webp', caption: 'RACK · REWORKED CAMO' },
+  { src: '/images/brand/photo-popup-rack.webp', caption: 'POP-UP · RACK' },
+  { src: '/images/brand/photo-tee-beach.webp', caption: 'SIGIL TEE · OUTSIDE' },
+] as const;
+
+const FEED_INTERVAL = 4200;
+
+function SignalFeed() {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(() => setIndex((current) => (current + 1) % FEED.length), FEED_INTERVAL);
+    return () => window.clearInterval(id);
+  }, [paused]);
+
+  const current = FEED[index];
+
+  return (
+    <figure
+      className="lp-feed m-0"
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      aria-label="La Propagande photography"
+    >
+      <div className="lp-feed__screen">
+        {FEED.map((frame, i) => (
+          <Image
+            key={frame.src}
+            src={frame.src}
+            alt=""
+            fill
+            sizes="(min-width: 1280px) 400px, 32vw"
+            priority={i === 0}
+            className="lp-feed__frame object-cover"
+            data-on={i === index ? 'true' : undefined}
+          />
+        ))}
+        <span className="lp-feed__rec" aria-hidden>
+          <span className="lp-feed__dot" /> REC
+        </span>
+      </div>
+      <figcaption className="lp-feed__caption">
+        <span className="truncate">{current.caption}</span>
+        <span className="lp-tabular text-[var(--lp-color-text-dim)]">
+          {String(index + 1).padStart(2, '0')}/{String(FEED.length).padStart(2, '0')}
+        </span>
+      </figcaption>
+    </figure>
+  );
+}
 
 function toClock(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
@@ -69,7 +126,6 @@ function shortDate(value: string) {
 
 export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
   const router = useRouter();
-  const { open: openPalette } = usePalette();
   const [bootIndex, setBootIndex] = useState(0);
   const [bootDone, setBootDone] = useState(true);
   const [execText, setExecText] = useState<string | null>(null);
@@ -161,11 +217,11 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-var(--lp-topbar-h))] w-full overflow-hidden bg-black">
+    <div className="lp-home-stage relative min-h-[calc(100vh-var(--lp-topbar-h))] w-full overflow-hidden bg-black">
       <video
         src="/media/home-loop.mp4"
         poster="/media/home-poster.jpg"
-        className="absolute inset-0 z-[var(--lp-z-video)] h-full w-full object-cover opacity-[0.55] saturate-0 contrast-[1.15]"
+        className="lp-home-veil absolute inset-0 z-[var(--lp-z-video)] h-full w-full object-cover opacity-[0.55] saturate-0 contrast-[1.15]"
         autoPlay
         muted
         loop
@@ -173,14 +229,15 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
         preload="metadata"
         aria-hidden="true"
       />
-      <div className="absolute inset-0 z-[var(--lp-z-video)] bg-[radial-gradient(ellipse_at_15%_0%,rgba(179,18,18,0.32),rgba(0,0,0,0.82)_55%)]" />
-      <div className="absolute inset-0 z-[var(--lp-z-video)] bg-[var(--lp-color-primary-800)] opacity-20 mix-blend-multiply" />
-      <div className="lp-noise lp-scanlines lp-vignette absolute inset-0 z-[var(--lp-z-noise)]" aria-hidden="true" />
+      <div className="lp-home-veil absolute inset-0 z-[var(--lp-z-video)] bg-[radial-gradient(ellipse_at_15%_0%,rgba(179,18,18,0.32),rgba(0,0,0,0.82)_55%)]" />
+      <div className="lp-home-veil absolute inset-0 z-[var(--lp-z-video)] bg-[var(--lp-color-primary-800)] opacity-20 mix-blend-multiply" />
+      <div className="lp-home-veil lp-noise lp-scanlines lp-vignette absolute inset-0 z-[var(--lp-z-noise)]" aria-hidden="true" />
 
       <div className="relative z-[var(--lp-z-panel)] lp-page-pad">
-        <div className="lp-shell grid gap-3 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
+        <div className="lp-shell grid items-start gap-3 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
+          <div className="grid content-start gap-3">
           {/* ROOT CONSOLE */}
-          <Panel ticks reveal={0} className="bg-[rgba(5,5,5,0.78)]">
+          <Panel ticks reveal={0} className="lp-console bg-[rgba(5,5,5,0.8)]">
             <PanelTitleBar title="ROOT.CONSOLE" meta="SESSION: GUEST-LOCAL" />
             <div className="relative overflow-hidden p-4 md:p-6">
               <Image
@@ -189,9 +246,10 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                 width={600}
                 height={424}
                 aria-hidden
-                className="pointer-events-none absolute -right-10 -top-6 w-[320px] opacity-[0.2] mix-blend-screen saturate-0 [mask-image:radial-gradient(closest-side,#000_45%,transparent_100%)] md:w-[460px] md:opacity-[0.28]"
+                className="pointer-events-none absolute -right-10 -top-6 w-[320px] opacity-[0.2] mix-blend-screen saturate-0 [mask-image:radial-gradient(closest-side,#000_45%,transparent_100%)] md:w-[460px] md:opacity-[0.28] lg:hidden"
               />
-              <div className="relative space-y-6">
+              <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(220px,34%)] lg:items-stretch lg:gap-8">
+              <div className="space-y-6">
                 <div className="space-y-2">
                   <Image
                     src="/images/lp-text-logo-cropped.png"
@@ -199,12 +257,12 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                     width={2732}
                     height={609}
                     priority
-                    className="h-auto w-[min(100%,620px)] invert"
+                    className="lp-wordmark h-auto w-[min(100%,620px)] invert"
                     sizes="(max-width: 768px) calc(100vw - 64px), 620px"
                   />
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <h1 className="lp-label m-0 text-[var(--lp-color-text-strong)]">La Propagande</h1>
-                    <p className="lp-log m-0">PARIS ↔ BEIRUT · BORN FROM REVOLT AND WAR</p>
+                    <h1 className="lp-sr-only">La Propagande</h1>
+                    <p className="lp-label m-0 text-[var(--lp-color-text-main)]">PARIS ↔ BEIRUT · BORN FROM REVOLT AND WAR</p>
                   </div>
                 </div>
 
@@ -226,18 +284,40 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                   ))}
                 </div>
 
-                <button type="button" onClick={() => openPalette()} className="lp-field lp-focus-ring w-full max-w-[560px] cursor-text text-left">
-                  <span className="lp-field__prefix">ROOT://LP&gt;</span>
-                  <span className="lp-ui-sm min-w-0 flex-1 truncate text-[var(--lp-color-text-dim)]">type a command · help · archive</span>
-                  <span className="lp-command-cursor mr-3" aria-hidden />
-                </button>
-
-                <p className={`lp-log m-0 min-h-[18px] text-[var(--lp-color-primary-300)] ${execText ? 'lp-command-output' : ''}`} aria-live="polite">
+                <p className={`lp-log m-0 text-[var(--lp-color-primary-300)] empty:hidden md:min-h-[18px] md:empty:block ${execText ? 'lp-command-output' : ''}`} aria-live="polite">
                   {execText ?? ''}
                 </p>
               </div>
+              <div className="hidden lg:block">
+                <SignalFeed />
+              </div>
+              </div>
             </div>
           </Panel>
+
+            {featured.length > 0 ? (
+              <Panel reveal={4}>
+                <PanelTitleBar title="FEATURED DROP" meta="STORE.exe" action={<Link href="/products" className="lp-ui-sm lp-tap text-[var(--lp-color-primary-300)] hover:text-[var(--lp-color-text-strong)]">OPEN CATALOG &gt;</Link>} />
+                <div className="flex snap-x snap-mandatory scroll-px-3 gap-2 overflow-x-auto p-3 [scrollbar-width:none] md:grid md:grid-cols-3 md:overflow-visible">
+                  {featured.map((product) => (
+                    <Link key={product.handle} href={`/products/${product.handle}`} className="group lp-focus-ring block w-[72vw] max-w-[300px] shrink-0 snap-start md:w-auto md:max-w-none">
+                      <span className="lp-media relative block aspect-[3/2]">
+                        <Image src={product.image} alt={product.title} fill sizes="(max-width: 768px) 72vw, 360px" className="object-contain" />
+                        <span className="lp-chip absolute left-0 top-0 max-w-[calc(100%-8px)] truncate border-l-0 border-t-0">
+                          {product.code}
+                        </span>
+                      </span>
+                      <span className="mt-3 block">
+                        <span className="lp-title lp-title-sm line-clamp-2 block text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{product.title}</span>
+                        <span className="lp-label lp-tabular mt-1 block text-[var(--lp-color-text-muted)]">{product.price}</span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </Panel>
+            ) : null}
+
+          </div>
 
           {/* RIGHT COLUMN */}
           <div className="grid content-start gap-3">
@@ -249,7 +329,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                     <Image src="/images/brand/frame-nam-01.jpg" alt="" fill sizes="96px" className="object-cover" />
                   </span>
                   <div className="space-y-1">
-                    <p className="lp-label-lg lp-label m-0 text-[var(--lp-color-text-strong)]">Files restored: 24%</p>
+                    <p className="lp-title lp-title-sm m-0 text-[var(--lp-color-text-strong)]">Files restored: 24%</p>
                     <div className="h-[6px] w-full border border-[var(--lp-color-border-default)]">
                       <div className="h-full w-[24%] bg-[var(--lp-color-primary-500)] transition-[width] duration-700 ease-lp group-hover:w-[31%]" />
                     </div>
@@ -276,16 +356,16 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
 
             {queue.length > 0 ? (
               <Panel reveal={3}>
-                <PanelTitleBar title="TRANSMISSION QUEUE" meta={`${queue.length} PENDING`} />
+                <PanelTitleBar title="TRANSMISSION QUEUE" meta={queue.some((item) => item.live) ? 'ON AIR' : `${queue.length} LOGGED`} />
                 <ul className="m-0 list-none p-0">
                   {queue.slice(0, 3).map((item) => (
                     <li key={item.handle} className="border-b border-[var(--lp-color-border-subtle)] last:border-b-0">
                       <Link href={`/blog/${item.handle}`} className="group flex min-h-[56px] items-center gap-3 px-3 py-2 transition-colors duration-150 hover:bg-[rgba(142,17,17,0.12)]">
-                        <span className="lp-media relative block h-10 w-10 shrink-0">
+                        <span className="lp-media lp-media--glitch relative block h-11 w-11 shrink-0">
                           {item.image ? <Image src={item.image} alt="" fill sizes="40px" className="object-cover" /> : null}
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="lp-label block truncate text-[var(--lp-color-text-strong)]">{item.title}</span>
+                          <span className="lp-title block truncate text-[16px] text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{item.title}</span>
                           <span className="lp-log block truncate">
                             {shortDate(item.date)} · {item.channel}
                             {item.location ? ` · ${item.location}` : ''}
@@ -298,35 +378,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                 </ul>
               </Panel>
             ) : null}
-          </div>
-        </div>
-
-        {/* FEATURED DROP + DIRECTORY + NODES */}
-        <div className="lp-shell mt-3 grid gap-3 lg:grid-cols-[1.6fr_1fr]">
-          {featured.length > 0 ? (
-            <Panel reveal={4}>
-              <PanelTitleBar title="FEATURED DROP" meta="STORE.exe" action={<Link href="/products" className="lp-ui-sm text-[var(--lp-color-primary-300)] hover:text-[var(--lp-color-text-strong)]">OPEN CATALOG &gt;</Link>} />
-              <div className="grid grid-cols-3 gap-2 p-3">
-                {featured.map((product) => (
-                  <Link key={product.handle} href={`/products/${product.handle}`} className="group lp-focus-ring block min-w-0">
-                    <span className="lp-media lp-media--zoom relative block aspect-[4/5]">
-                      <Image src={product.image} alt={product.title} fill sizes="(max-width: 768px) 30vw, 220px" className="object-cover" />
-                      <span className="lp-chip absolute left-1 top-1 hidden max-w-[calc(100%-8px)] md:inline-flex" data-tone={product.status === 'AVAILABLE' ? 'success' : 'warning'}>
-                        {product.code}
-                      </span>
-                    </span>
-                    <span className="mt-2 block">
-                      <span className="lp-label block truncate text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{product.title}</span>
-                      <span className="lp-log block">{product.price}</span>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </Panel>
-          ) : null}
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <Panel reveal={5} className="hidden sm:block">
+            <Panel reveal={5} className="hidden md:block">
               <PanelTitleBar title="DIRECTORY" meta="/ROOT" />
               <div className="p-3">
                 {DIRECTORY.map((line) => (
@@ -336,7 +388,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                 ))}
               </div>
             </Panel>
-            <Panel reveal={6}>
+            <Panel reveal={6} className="hidden md:block">
               <PanelTitleBar title="SESSION" meta={toClock(uptime)} />
               <div className="space-y-2 p-3">
                 <div className="flex flex-wrap gap-[6px]">
@@ -355,7 +407,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
           <div className="lp-ticker lp-panel overflow-hidden" aria-hidden="true">
             <div className="lp-ticker__track" style={{ gap: 0, paddingRight: 0 }}>
               {[...SLOGANS, ...SLOGANS].map((src, i) => (
-                <Image key={`${src}-${i}`} src={src} alt="" width={240} height={170} className="h-[72px] w-auto border-r border-[var(--lp-color-border-subtle)] md:h-[92px]" />
+                <Image key={`${src}-${i}`} src={src} alt="" width={240} height={170} sizes="(max-width: 768px) 200px, 255px" className="h-[140px] w-auto border-r border-[var(--lp-color-border-subtle)] md:h-[180px]" />
               ))}
             </div>
           </div>

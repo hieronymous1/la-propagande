@@ -38,7 +38,7 @@ export const CTA_LINKS: SocialLink[] = [
   },
   {
     label: 'Instagram',
-    href: 'https://www.instagram.com/__lapropagande/?hl=en',
+    href: 'https://www.instagram.com/_lapropagande?srtk=MTRkOWsydG0zcDEwaQ%3D%3D&utm_source=qr',
   },
   {
     label: 'TikTok',
@@ -50,14 +50,18 @@ export const CTA_LINKS: SocialLink[] = [
   },
   {
     label: 'Archive Insta',
-    href: 'https://www.instagram.com/lapropagande.archive?igsh=OWdid2pucG9vNW5m&utm_source=qr',
+    href: 'https://www.instagram.com/lapropagande.psyops?mdxt=OWdid2pucG9vNW5m&utm_source=qr',
+  },
+  {
+    label: 'Email',
+    href: 'mailto:lapropagandeparisbey@outlook.com',
   },
 ];
 
 export const FOOTER_LINKS: SocialLink[] = [
   {
     label: 'Instagram',
-    href: 'https://www.instagram.com/__lapropagande?igsh=MTRkOWsydG0zcDEwaQ%3D%3D&utm_source=qr',
+    href: 'https://www.instagram.com/_lapropagande?srtk=MTRkOWsydG0zcDEwaQ%3D%3D&utm_source=qr',
   },
   {
     label: 'WhatsApp',
@@ -67,7 +71,7 @@ export const FOOTER_LINKS: SocialLink[] = [
 
 export const ARCHIVE_FOLLOW_LINK: SocialLink = {
   label: 'FOLLOW THE ARCHIVE',
-  href: 'https://www.instagram.com/lapropagande.archive?igsh=OWdid2pucG9vNW5m&utm_source=qr',
+  href: 'https://www.instagram.com/lapropagande.psyops?mdxt=OWdid2pucG9vNW5m&utm_source=qr',
 };
 
 export const ABOUT_FALLBACK_SECTIONS: AboutSection[] = [
@@ -104,19 +108,10 @@ export const LOCATION_FALLBACK_ENTRIES: LocationEntry[] = [
     note: 'By appointment only',
   },
   {
-    id: 'location-selling-afkart-popup',
-    title: 'Afkart popup',
+    id: 'location-selling-fearlove',
+    title: 'Fearlove Vintage Shop',
     kind: 'selling_point',
-    address: 'ABC Ashrafieh, Mall Square concept store. Level 0 in front of Bar Tartine',
-    dateRange: 'Until the end of June 2026',
-  },
-  {
-    id: 'location-selling-mzaar-summer-festival-expo',
-    title: 'Mzaar summer festival Expo',
-    kind: 'selling_point',
-    address: 'Stand 18, Kfardebian, Faraya',
-    dateRange: '30 July to 23 August 2026',
-    hours: '12 to 9 PM',
+    address: 'St Lois Street, Beirut, Lebanon',
   },
 ];
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { useCart } from './CartProvider';
 import type { CartLine } from '@/lib/types';
+import { COMMERCE_ENABLED, DEMO_MESSAGE } from '@/lib/commerce';
 import { formatPrice } from '@/lib/product-options';
 
 export default function CartDrawer() {
@@ -67,8 +68,8 @@ export default function CartDrawer() {
             <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
               <Image src="/images/brand/sigil-square.webp" alt="" width={120} height={100} className="w-[110px] opacity-60 saturate-0" />
               <div>
-                <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">Buffer empty</p>
-                <p className="lp-body lp-body-sm m-0 mt-1 text-[var(--lp-color-text-muted)]">Nothing queued for checkout yet.</p>
+                <p className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">{COMMERCE_ENABLED ? 'Buffer empty' : 'Demo version'}</p>
+                <p className="lp-body lp-body-sm m-0 mt-1 text-[var(--lp-color-text-muted)]">{COMMERCE_ENABLED ? 'Nothing queued for checkout yet.' : DEMO_MESSAGE}</p>
               </div>
               <Link href="/products" onClick={closeCart} className="lp-btn lp-btn--primary">
                 ENTER STORE <span className="lp-btn__arrow">&gt;</span>
@@ -82,7 +83,7 @@ export default function CartDrawer() {
                 return (
                   <li key={line.id} className="lp-panel lp-reveal flex gap-3 p-2">
                     <Link href={`/products/${line.merchandise.product.handle}`} onClick={closeCart} className="lp-media relative block h-20 w-16 shrink-0">
-                      {image ? <Image src={image.url} alt={image.altText ?? line.merchandise.product.title} fill className="object-cover" sizes="64px" /> : null}
+                      {image ? <Image src={image.url} alt={image.altText ?? line.merchandise.product.title} fill className="object-contain" sizes="64px" /> : null}
                     </Link>
 
                     <div className="min-w-0 flex-1 space-y-2">
@@ -116,13 +117,13 @@ export default function CartDrawer() {
           )}
         </div>
 
-        {lines.length > 0 && subtotal ? (
+        {COMMERCE_ENABLED && lines.length > 0 && subtotal ? (
           <div className="space-y-3 border-t border-[var(--lp-color-border-accent)] bg-[var(--lp-color-bg-2)] p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
             <dl className="lp-meta m-0">
               <dt>Items</dt>
               <dd className="lp-tabular">{count}</dd>
               <dt>Subtotal</dt>
-              <dd className="lp-display lp-display-sm text-[var(--lp-color-text-strong)]">{formatPrice(subtotal.amount, subtotal.currencyCode)}</dd>
+              <dd className="lp-title lp-title-md text-[var(--lp-color-text-strong)]">{formatPrice(subtotal.amount, subtotal.currencyCode)}</dd>
             </dl>
             <p className="lp-log m-0">SHIPPING AND TAXES CALCULATED AT CHECKOUT</p>
             <a href={cart?.checkoutUrl ?? '#'} className="lp-btn lp-btn--primary lp-btn--lg lp-btn--block">

@@ -9,9 +9,9 @@ import { useCart } from '@/components/store/CartProvider';
 
 export const NAV_LINKS = [
   { label: 'Store', href: '/store', match: ['/store', '/products', '/custom-jackets'] },
-  { label: 'Events', href: '/events', match: ['/events', '/blog'] },
+  { label: 'Blog', href: '/blog', match: ['/blog', '/events'] },
   { label: 'About', href: '/about', match: ['/about'] },
-  { label: 'Connect', href: '/contact', match: ['/contact', '/locations'] },
+  { label: 'Contact us', href: '/contact', match: ['/contact', '/locations'] },
 ] as const;
 
 export function isActivePath(pathname: string, match: readonly string[]) {
@@ -74,9 +74,9 @@ export default function Navbar() {
         <div className="lp-shell flex h-[var(--lp-topbar-h)] items-center gap-3 md:gap-5">
           <Link href="/" className="group lp-focus-ring relative flex min-h-[44px] shrink-0 items-center gap-[10px]" aria-label="La Propagande — return to root">
             <Image src="/images/lp-logo-red.png" alt="" width={34} height={34} priority className="h-[30px] w-[30px] object-contain transition-transform duration-300 ease-lp group-hover:rotate-[22deg]" />
-            <span className="hidden flex-col leading-none sm:flex">
-              <span className="lp-label text-[var(--lp-color-text-strong)]">La Propagande</span>
-              <span className="lp-log mt-[3px] flex items-center gap-2 text-[var(--lp-color-text-dim)]">
+            <span className="flex flex-col leading-none">
+              <span className="lp-label whitespace-nowrap text-[var(--lp-color-text-strong)]">La Propagande</span>
+              <span className="lp-log mt-[3px] hidden items-center sm:flex gap-2 text-[var(--lp-color-text-dim)]">
                 <span>PAR ↔ BEY</span>
                 <span aria-hidden className="lp-signal-meter">
                   <span className="lp-signal-bar lp-signal-bar-1" />
@@ -119,9 +119,6 @@ export default function Navbar() {
             <button onClick={openCart} className="lp-btn lp-btn--sm" aria-label={`Open cart, ${cartCount} items`}>
               CART <CartCount count={cartCount} />
             </button>
-            <button onClick={() => setMenuOpen((current) => !current)} className="lp-btn lp-btn--sm" aria-expanded={menuOpen} aria-controls="lp-command-sheet">
-              {menuOpen ? 'CLOSE' : 'MENU'}
-            </button>
           </div>
         </div>
       </nav>
@@ -129,11 +126,20 @@ export default function Navbar() {
       {/* mobile handheld dock */}
       <div className="lp-dock md:hidden">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => openPalette()} className="lp-field lp-focus-ring min-h-[44px] flex-1 cursor-text" aria-label="Open command palette">
-            <span className="lp-field__prefix">&gt;</span>
-            <span className="lp-ui-sm flex-1 text-left text-[var(--lp-color-text-dim)]">Search or command</span>
+          <button type="button" onClick={() => openPalette()} className="lp-field lp-focus-ring min-h-[44px] min-w-0 flex-1 cursor-text" aria-label="Open command palette">
+            <span className="lp-field__prefix">ROOT&gt;</span>
+            <span className="lp-ui-sm min-w-0 flex-1 truncate text-left text-[var(--lp-color-text-dim)]">Search or command</span>
+            <span className="lp-command-cursor mr-3 h-[14px] w-[7px]" aria-hidden />
           </button>
-          <span className="lp-log lp-tabular hidden min-[380px]:block">{clock}</span>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((current) => !current)}
+            className="lp-btn lp-btn--primary min-w-[88px]"
+            aria-expanded={menuOpen}
+            aria-controls="lp-command-sheet"
+          >
+            MENU
+          </button>
         </div>
       </div>
 
@@ -141,9 +147,7 @@ export default function Navbar() {
         <div id="lp-command-sheet" className="lp-sheet md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="lp-shell flex h-[var(--lp-topbar-h)] items-center justify-between border-b border-[var(--lp-color-border-accent)]">
             <span className="lp-label text-[var(--lp-color-text-strong)]">COMMAND.SHEET</span>
-            <button onClick={() => setMenuOpen(false)} className="lp-btn lp-btn--sm">
-              CLOSE
-            </button>
+            <span className="lp-log lp-tabular">{clock}</span>
           </div>
           <div className="flex-1 overflow-y-auto">
             {[...NAV_LINKS.map((l) => ({ label: l.label, href: l.href, match: l.match as readonly string[] })), { label: 'Custom Jackets', href: '/custom-jackets', match: [] }, { label: 'Locations', href: '/locations', match: [] }].map(
@@ -162,18 +166,20 @@ export default function Navbar() {
               )
             )}
           </div>
-          <div className="lp-shell space-y-2 border-t border-[var(--lp-color-border-subtle)] py-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+          <div className="lp-shell grid grid-cols-[1fr_auto] gap-2 border-t border-[var(--lp-color-border-subtle)] py-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={() => {
                 setMenuOpen(false);
                 window.setTimeout(() => openPalette(), 80);
               }}
-              className="lp-btn lp-btn--block"
+              className="lp-btn"
             >
-              OPEN COMMAND LINE
+              COMMAND LINE
             </button>
-            <p className="lp-log m-0 text-center">NODE LP_PAR-BEY_01 · {clock} · TYPE HELP FOR COMMANDS</p>
+            <button type="button" onClick={() => setMenuOpen(false)} className="lp-btn lp-btn--primary min-w-[88px]">
+              CLOSE
+            </button>
           </div>
         </div>
       ) : null}

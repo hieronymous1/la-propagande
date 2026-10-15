@@ -39,6 +39,7 @@ const ARTICLE_FIELD_KEYS = [
   'location',
   'source',
   'gallery',
+  'instagram_url',
 ];
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -250,6 +251,7 @@ async function verifyStorefront({ domain, token, apiVersion, namespace, aboutTyp
                 statusMeta: metafield(namespace: $namespace, key: "status") { value }
                 locationMeta: metafield(namespace: $namespace, key: "location") { value }
                 sourceMeta: metafield(namespace: $namespace, key: "source") { value }
+              instagramUrl: metafield(namespace: $namespace, key: "instagram_url") { value }
               }
             }
           }
@@ -271,6 +273,7 @@ async function verifyStorefront({ domain, token, apiVersion, namespace, aboutTyp
       'statusMeta',
       'locationMeta',
       'sourceMeta',
+      'instagramUrl',
     ]),
     productsMissingImages: products.filter((product) => product.images.edges.length === 0),
     coverage: summarizeCoverage(products),
@@ -402,7 +405,10 @@ async function main() {
     const missingScopes = REQUIRED_ADMIN_SCOPES.filter((scope) => !scopes.includes(scope));
     console.log(`  required setup scope gaps: ${missingScopes.length ? missingScopes.join(', ') : 'none'}`);
     if (missingScopes.length) {
-      console.log('  definition verification skipped until the Admin token has the required scopes');
+    }
+    const missingReadScopes = ['read_metaobject_definitions', 'read_products', 'read_content'].filter((scope) => !scopes.includes(scope) && !scopes.includes(scope.replace('read_', 'write_')));
+    if (missingReadScopes.length) {
+      console.log(`  read-only definition verification unavailable: ${missingReadScopes.join(', ')}`);
       return;
     }
   } catch (error) {

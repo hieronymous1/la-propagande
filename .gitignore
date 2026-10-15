@@ -16,3 +16,8 @@ tsconfig.tsbuildinfo
 
 # env files
 .env*.local
+
+# local design explorations / tool data (never deploy)
+/public/lab
+/.21st
+.DS_Store

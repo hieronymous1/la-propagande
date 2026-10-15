@@ -28,10 +28,29 @@ export interface Transmission {
   isLive: boolean;
 }
 
+const DAY = 86_400_000;
+/** a transmission stays on air for this long after it is published, then it is logged */
+const ON_AIR_WINDOW_DAYS = 21;
+
+/**
+ * Status follows the calendar, not just the CMS flag: a post flagged LIVE in
+ * Shopify stops claiming LIVE once its window has passed.
+ */
+function resolveStatus(rawStatus: string | undefined, publishedAt: string, now = Date.now()): { status: string; isLive: boolean } {
+  const flag = rawStatus?.toUpperCase();
+  const published = new Date(publishedAt).getTime();
+  const age = Number.isFinite(published) ? now - published : 0;
+
+  if (age < 0) return { status: 'UPCOMING', isLive: false };
+  if (flag === 'ARCHIVE' || flag === 'COMPLETE' || flag === 'ENDED' || age > ON_AIR_WINDOW_DAYS * DAY) {
+    return { status: 'LOGGED', isLive: false };
+  }
+  if (flag === 'UPCOMING') return { status: 'UPCOMING', isLive: false };
+  return { status: 'ON AIR', isLive: true };
+}
+
 export function getTransmission(article: Article): Transmission {
-  const status = clean(article.lpMeta?.status) ?? 'ACTIVE';
-  const normalizedStatus = status.toUpperCase() === 'ARCHIVE' ? 'COMPLETE' : status.toUpperCase();
-  const isLive = normalizedStatus === 'LIVE' || normalizedStatus === 'ACTIVE';
+  const { status: normalizedStatus, isLive } = resolveStatus(article.lpMeta?.status, article.publishedAt);
   return {
     id: (article.lpMeta?.transmissionId ?? article.id.replace(/[^A-Z0-9]/gi, '').slice(-6)).replace(/^TX-?/i, '').toUpperCase(),
     channel: (clean(article.lpMeta?.channel) ?? article.tags[0] ?? 'BULLETIN').toUpperCase(),

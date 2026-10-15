@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { MetaList, Panel, PanelTitleBar, StatusChip, StatusStrip } from '@/components/system/Primitives';
 import { getBlogPostByHandle, getBlogPosts } from '@/lib/queries/blog';
 import { formatTxDate, formatTxDateLong, getTransmission } from '@/lib/transmission';
+import InstagramPost from '@/components/blog/InstagramPost';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,8 +37,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <div className="lp-shell lp-page-pad space-y-4">
       <nav aria-label="Breadcrumb" className="lp-log flex flex-wrap items-center gap-2">
-        <Link href="/blog" className="hover:text-[var(--lp-color-text-strong)]">
-          EVENTS.log
+        <Link href="/blog" className="lp-tap hover:text-[var(--lp-color-text-strong)]">
+          BLOG.log
         </Link>
         <span className="text-[var(--lp-color-text-dim)]">/</span>
         <span className="text-[var(--lp-color-text-main)]">TX-{tx.id}</span>
@@ -58,12 +59,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="flex flex-wrap gap-2">
               <StatusChip label={tx.channel} tone="accent" />
               <StatusChip label={tx.category} />
-              {tx.location ? <StatusChip label={tx.location} dot tone="success" /> : null}
-              <StatusChip label={tx.status} tone={tx.isLive ? 'success' : 'neutral'} />
+              {tx.location ? <StatusChip label={tx.location} /> : null}
+              <StatusChip label={tx.status} tone={tx.isLive ? "success" : "neutral"} dot={tx.isLive} />
             </div>
-            <h1 className="lp-display lp-display-lg m-0 text-[var(--lp-color-text-strong)]">{article.title}</h1>
+            <h1 className="lp-title lp-title-xl m-0 text-[var(--lp-color-text-strong)]">{article.title}</h1>
             {article.excerpt ? <p className="lp-body lp-body-lg m-0 text-[var(--lp-color-text-strong)]">{article.excerpt}</p> : null}
             <div className="lp-body lp-prose" dangerouslySetInnerHTML={{ __html: article.contentHtml }} />
+            {article.instagramUrl ? <InstagramPost url={article.instagramUrl} title={article.title} /> : null}
           </article>
 
           <aside className="space-y-3 md:border-l md:border-[var(--lp-color-border-subtle)] md:pl-6" data-testid="event-detail-meta">
@@ -88,7 +90,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {gallery.length > 1 ? (
           <div className="grid gap-2 border-t border-[var(--lp-color-border-subtle)] p-2 sm:grid-cols-2 md:grid-cols-3">
             {gallery.slice(1).map((image, index) => (
-              <div key={`${image.url}-${index}`} className="lp-media lp-media--zoom relative aspect-[4/3]">
+              <div key={`${image.url}-${index}`} className="lp-media lp-media--zoom lp-media--glitch relative aspect-[4/3]">
                 <Image src={image.url} alt={image.altText ?? `${article.title} ${index + 2}`} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               </div>
             ))}
@@ -106,7 +108,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <Link key={post.id} href={`/blog/${post.handle}`} className="group lp-focus-ring flex gap-3 border border-transparent p-2 transition-colors duration-150 hover:border-[var(--lp-color-border-default)]">
                   <span className="lp-media relative block h-16 w-20 shrink-0">{post.image ? <Image src={post.image.url} alt="" fill sizes="80px" className="object-cover" /> : null}</span>
                   <span className="min-w-0">
-                    <span className="lp-label block truncate text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{post.title}</span>
+                    <span className="lp-title lp-title-sm block truncate text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{post.title}</span>
                     <span className="lp-log block">
                       {formatTxDate(post.publishedAt)} · {rtx.channel}
                     </span>

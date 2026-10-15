@@ -287,8 +287,7 @@ const ABOUT_SECTIONS = [
 const LOCATION_ENTRIES = [
   { title: 'Showroom Badaro', kind: 'showroom', address: 'Badaro, Benoit Barakat street, George Calil Building, 1st floor', note: 'By appointment only', sort_order: '1' },
   { title: 'Showroom Ashrafieh', kind: 'showroom', address: 'Palais de justice street قصر العدل, Factory 4376 building, block C, 9th floor', note: 'By appointment only', sort_order: '2' },
-  { title: 'Afkart popup', kind: 'selling_point', address: 'ABC Ashrafieh, Mall Square concept store. Level 0 in front of Bar Tartine', date_range: 'Until the end of June 2026', sort_order: '3' },
-  { title: 'Mzaar summer festival Expo', kind: 'selling_point', address: 'Stand 18, Kfardebian, Faraya', date_range: '30 July to 23 August 2026', hours: '12 to 9 PM', sort_order: '4' },
+  { title: 'Fearlove Vintage Shop', kind: 'selling_point', address: 'St Lois Street, Beirut, Lebanon', sort_order: '3' },
 ];
 
 const PRODUCT_METAFIELDS = [
@@ -313,6 +312,7 @@ const ARTICLE_METAFIELDS = [
   { key: 'location', type: 'single_line_text_field', name: 'Location' },
   { key: 'source', type: 'single_line_text_field', name: 'Source' },
   { key: 'gallery', type: 'list.file_reference', name: 'Gallery' },
+  { key: 'instagram_url', type: 'url', name: 'Instagram post URL' },
 ];
 
 // ── Steps ─────────────────────────────────────────────────────────────────────

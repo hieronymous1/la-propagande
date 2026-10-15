@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { COMMERCE_ENABLED } from '@/lib/commerce';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductsCatalog from '@/components/product/ProductsCatalog';
@@ -18,7 +19,7 @@ export default async function ProductsPage() {
 
   return (
     <div className="lp-shell lp-page-pad space-y-4">
-      <PageHeader module="STORE.exe" title="Catalog" strip={`INVENTORY NODE LP-STORE · ${products.length} RECORDS · CHECKOUT VIA CART`}>
+      <PageHeader module="STORE.exe" title="Catalog" strip={`INVENTORY NODE LP-STORE · ${products.length} RECORDS · ${COMMERCE_ENABLED ? 'CHECKOUT VIA CART' : 'DEMO · ORDERING COMING SOON'}`}>
         <Link href="/custom-jackets" className="group lp-panel lp-panel--interactive lp-panel--accent flex items-center gap-3 p-2 pr-4 lp-focus-ring">
           <span className="lp-media relative block h-12 w-12 shrink-0">
             <Image src="/images/brand/photo-jacket-rack.webp" alt="" fill sizes="48px" className="object-cover" />

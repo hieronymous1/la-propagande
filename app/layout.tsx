@@ -3,6 +3,8 @@ import './globals.css';
 import { CartProvider } from '@/components/store/CartProvider';
 import CartDrawer from '@/components/store/CartDrawer';
 import GlobalShell from '@/components/layout/GlobalShell';
+import DemoNotice from '@/components/system/DemoNotice';
+import VisitorCounter from '@/components/system/VisitorCounter';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_ORIGIN ?? 'https://www.lapropagande.net'),
@@ -36,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preload" href="/fonts/dirty-war.otf" as="font" type="font/otf" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/ARMY%20RUST.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
@@ -47,7 +49,8 @@ export default function RootLayout({
         <CartProvider>
           <GlobalShell>{children}</GlobalShell>
           <CartDrawer />
-        </CartProvider>
+          <DemoNotice />
+          <div className="lp-shell py-2"><VisitorCounter /></div>        </CartProvider>
       </body>
     </html>
   );

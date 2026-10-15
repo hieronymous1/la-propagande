@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Product, ShopifyImage } from '@/lib/types';
+import { COMMERCE_ENABLED } from '@/lib/commerce';
 import { useCart } from '@/components/store/CartProvider';
-import { MetaList, Panel, PanelTitleBar, StatusChip, StatusStrip } from '@/components/system/Primitives';
+import { MetaList, Panel, PanelTitleBar, StatusChip } from '@/components/system/Primitives';
 import type { ChipTone } from '@/components/system/Primitives';
 import { getProductCatalogMeta } from '@/lib/site';
 import { findVariant, formatPrice, getOptionGroups, getVariants, isValueAvailable, swatchColor } from '@/lib/product-options';
@@ -72,13 +73,14 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
   const [notesOpen, setNotesOpen] = useState(false);
   const [buyBarVisible, setBuyBarVisible] = useState(false);
   const buyRef = useRef<HTMLDivElement>(null);
+  const swipeStart = useRef<number | null>(null);
 
   const selectedVariant = useMemo(() => findVariant(product, selection), [product, selection]);
   const price = selectedVariant?.price ?? product.priceRange.minVariantPrice;
   const catalogMeta = useMemo(() => getProductCatalogMeta(product), [product]);
   const status = product.lpMeta?.status ?? (selectedVariant?.availableForSale ? 'AVAILABLE' : 'SOLD_OUT');
   const statusMeta = statusInfo(status);
-  const canBuy = Boolean(selectedVariant?.availableForSale);
+  const canBuy = COMMERCE_ENABLED && Boolean(selectedVariant?.availableForSale);
 
   const shortDescription = (product.lpMeta?.shortDescription ?? '').trim();
   const summaryItems = summaryBullets(product.lpMeta?.summary ?? catalogMeta.shortDescription);
@@ -94,17 +96,6 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (images.length < 2) return;
-      const target = event.target as HTMLElement | null;
-      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
-      if (event.key === 'ArrowRight') setImageIndex((i) => (i + 1) % images.length);
-      if (event.key === 'ArrowLeft') setImageIndex((i) => (i - 1 + images.length) % images.length);
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [images.length]);
 
   async function handleAddToCart() {
     if (!selectedVariant || !canBuy) return;
@@ -140,81 +131,108 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       className={`lp-btn lp-btn--primary lp-btn--lg lp-btn--block ${justAdded ? '!border-[var(--lp-color-status-online)]' : ''}`}
       aria-live="polite"
     >
-      {adding ? 'ADDING…' : justAdded ? '✓ ADDED TO CART' : canBuy ? `ADD TO CART · ${formatPrice(price.amount, price.currencyCode)}` : statusMeta.label}
+      {!COMMERCE_ENABLED ? 'DEMO · ORDERING COMING SOON' : adding ? 'ADDING…' : justAdded ? '✓ ADDED TO CART' : canBuy ? `ADD TO CART · ${formatPrice(price.amount, price.currencyCode)}` : statusMeta.label}
     </button>
   );
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <nav aria-label="Breadcrumb" className="lp-log flex flex-wrap items-center gap-2">
-        <Link href="/products" className="hover:text-[var(--lp-color-text-strong)]">
+        <Link href="/products" className="lp-tap hover:text-[var(--lp-color-text-strong)]">
           STORE.exe
         </Link>
         <span className="text-[var(--lp-color-text-dim)]">/</span>
-        <Link href={`/products?c=${product.lpMeta?.category ?? catalogMeta.category}`} className="hover:text-[var(--lp-color-text-strong)]">
+        <Link href={`/products?c=${product.lpMeta?.category ?? catalogMeta.category}`} className="lp-tap hover:text-[var(--lp-color-text-strong)]">
           {(formatCategory(product.lpMeta?.category ?? catalogMeta.category) ?? 'ITEMS').toUpperCase()}
         </Link>
         <span className="text-[var(--lp-color-text-dim)]">/</span>
         <span className="text-[var(--lp-color-text-main)]">{itemCode(product)}</span>
       </nav>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)] lg:items-start">
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)] lg:items-start">
         {/* GALLERY */}
-        <Panel ticks reveal={0} className="overflow-hidden lg:sticky lg:top-[calc(var(--lp-topbar-h)+12px)]">
+        <Panel ticks reveal={0} className="min-w-0 overflow-hidden lg:sticky lg:top-[calc(var(--lp-topbar-h)+12px)]">
           <PanelTitleBar title="MEDIA.GALLERY" meta={images.length ? `${String(imageIndex + 1).padStart(2, '0')} / ${String(images.length).padStart(2, '0')}` : 'NO ASSETS'} />
-          <div className="grid gap-2 p-2 md:grid-cols-[64px_1fr]">
+          <div className={`grid min-w-0 grid-cols-1 gap-2 p-2 ${images.length > 1 ? 'md:grid-cols-[64px_1fr]' : ''}`}>
             {images.length > 1 ? (
-              <div className="order-2 flex gap-2 overflow-x-auto md:order-1 md:flex-col md:overflow-visible" role="tablist" aria-label="Product images">
+              <div className="order-2 flex min-w-0 gap-2 overflow-x-auto md:order-1 md:flex-col md:overflow-visible" aria-label="Choose product image">
                 {images.map((img, idx) => (
                   <button
                     key={`${img.url}-${idx}`}
-                    role="tab"
-                    aria-selected={imageIndex === idx}
+                    type="button"
+                    aria-pressed={imageIndex === idx}
                     onClick={() => setImageIndex(idx)}
                     aria-label={img.altText ?? `View image ${idx + 1}`}
                     className={`lp-media relative h-16 w-16 shrink-0 transition-[border-color,opacity] duration-150 ${
                       imageIndex === idx ? 'border-[var(--lp-color-primary-500)] opacity-100' : 'border-[var(--lp-color-border-default)] opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <Image src={img.url} alt="" fill sizes="64px" className="object-cover" />
+                    <Image src={img.url} alt="" fill sizes="64px" className="object-contain" />
                   </button>
                 ))}
               </div>
             ) : null}
-            <div className="lp-media relative order-1 aspect-[4/5] w-full md:order-2 md:aspect-auto md:min-h-[560px]">
+            <div
+              role="region"
+              aria-roledescription="carousel"
+              aria-label={`${product.title} images`}
+              tabIndex={images.length > 1 ? 0 : undefined}
+              onKeyDown={(event) => {
+                if (images.length < 2 || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+                event.preventDefault();
+                setImageIndex((i) => (i + (event.key === 'ArrowRight' ? 1 : -1) + images.length) % images.length);
+              }}
+              className="lp-media relative order-1 aspect-[4/5] min-w-0 w-full touch-pan-y md:order-2 md:aspect-auto md:min-h-[560px]"
+              onPointerDown={(event) => {
+                swipeStart.current = event.pointerType === 'touch' ? event.clientX : null;
+              }}
+              onPointerUp={(event) => {
+                if (swipeStart.current === null || images.length < 2) return;
+                const delta = event.clientX - swipeStart.current;
+                swipeStart.current = null;
+                if (Math.abs(delta) < 40) return;
+                setImageIndex((i) => (delta < 0 ? (i + 1) % images.length : (i - 1 + images.length) % images.length));
+              }}
+              onPointerCancel={() => {
+                swipeStart.current = null;
+              }}
+            >
               {selectedImage ? (
-                <Image key={selectedImage.url} src={selectedImage.url} alt={selectedImage.altText ?? product.title} fill sizes="(max-width: 1024px) 100vw, 60vw" className="lp-command-output object-cover" priority />
+                <Image key={selectedImage.url} src={selectedImage.url} alt={selectedImage.altText ?? product.title} fill sizes="(max-width: 1024px) 100vw, 60vw" className="lp-command-output object-contain" priority />
               ) : (
                 <div className="flex h-full min-h-[320px] items-center justify-center">
                   <span className="lp-log">NO IMAGE ON FILE</span>
                 </div>
               )}
               {images.length > 1 ? (
-                <>
-                  <button type="button" onClick={() => setImageIndex((i) => (i - 1 + images.length) % images.length)} className="lp-btn lp-btn--icon absolute left-2 top-1/2 -translate-y-1/2 bg-[rgba(5,5,5,0.7)]" aria-label="Previous image">
+                <div className="absolute bottom-0 right-0 z-[2] flex items-stretch border-l border-t border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)]">
+                  <button type="button" onClick={() => setImageIndex((i) => (i - 1 + images.length) % images.length)} className="lp-btn lp-btn--icon border-0" aria-label="Previous image">
                     &lt;
                   </button>
-                  <button type="button" onClick={() => setImageIndex((i) => (i + 1) % images.length)} className="lp-btn lp-btn--icon absolute right-2 top-1/2 -translate-y-1/2 bg-[rgba(5,5,5,0.7)]" aria-label="Next image">
+                  <span className="lp-ui lp-tabular flex min-w-[72px] items-center justify-center border-x border-[var(--lp-color-border-default)] text-[var(--lp-color-text-strong)]" aria-live="polite" aria-atomic="true">
+                    {String(imageIndex + 1).padStart(2, '0')}/{String(images.length).padStart(2, '0')}
+                  </span>
+                  <button type="button" onClick={() => setImageIndex((i) => (i + 1) % images.length)} className="lp-btn lp-btn--icon border-0" aria-label="Next image">
                     &gt;
                   </button>
-                </>
+                </div>
               ) : null}
             </div>
           </div>
         </Panel>
 
         {/* RECORD */}
-        <div className="space-y-3">
+        <div className="min-w-0 space-y-3">
           <Panel reveal={1}>
             <PanelTitleBar title="ITEM.RECORD" meta={itemCode(product)} />
-            <div className="space-y-5 p-4">
-              <div className="space-y-2">
+            <div className="space-y-6 p-4 md:p-6">
+              <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusChip label={statusMeta.label} tone={statusMeta.tone} dot />
                   {product.lpMeta?.collection ? <StatusChip label={product.lpMeta.collection} /> : null}
                 </div>
-                <h1 className="lp-display lp-display-lg m-0 text-[var(--lp-color-text-strong)]">{product.title}</h1>
-                <p className="lp-display lp-display-md m-0 text-[var(--lp-color-primary-300)]">{formatPrice(price.amount, price.currencyCode)}</p>
+                <h1 className="lp-title lp-title-xl m-0 text-[var(--lp-color-text-strong)]">{product.title}</h1>
+                <p className="lp-title lp-title-lg lp-tabular m-0 text-[var(--lp-color-text-strong)]">{formatPrice(price.amount, price.currencyCode)}</p>
                 {shortDescription ? <p className="lp-body m-0">{shortDescription}</p> : null}
               </div>
 
@@ -270,17 +288,17 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
               <div ref={buyRef} className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="inline-flex items-center border border-[var(--lp-color-border-default)]" role="group" aria-label="Quantity">
-                    <button type="button" onClick={() => setQuantity((c) => Math.max(1, c - 1))} className="lp-btn lp-btn--ghost h-11 w-11 border-0 border-r border-[var(--lp-color-border-default)]" aria-label="Decrease quantity">
+                    <button type="button" disabled={!COMMERCE_ENABLED} onClick={() => setQuantity((c) => Math.max(1, c - 1))} className="lp-btn lp-btn--ghost h-11 w-11 border-0 border-r border-[var(--lp-color-border-default)]" aria-label="Decrease quantity">
                       −
                     </button>
                     <span className="lp-label lp-tabular w-12 text-center text-[var(--lp-color-text-strong)]" aria-live="polite">
                       {quantity}
                     </span>
-                    <button type="button" onClick={() => setQuantity((c) => Math.min(20, c + 1))} className="lp-btn lp-btn--ghost h-11 w-11 border-0 border-l border-[var(--lp-color-border-default)]" aria-label="Increase quantity">
+                    <button type="button" disabled={!COMMERCE_ENABLED} onClick={() => setQuantity((c) => Math.min(20, c + 1))} className="lp-btn lp-btn--ghost h-11 w-11 border-0 border-l border-[var(--lp-color-border-default)]" aria-label="Increase quantity">
                       +
                     </button>
                   </div>
-                  <p className="lp-log m-0">{canBuy ? 'PURCHASE READY · SHIPS FROM PAR/BEY' : 'THIS COMBINATION IS UNAVAILABLE'}</p>
+                  <p className="lp-log m-0">{!COMMERCE_ENABLED ? 'DEMO VERSION · ORDERS OPEN AT LAUNCH' : canBuy ? 'PURCHASE READY · SHIPS FROM PAR/BEY' : 'THIS COMBINATION IS UNAVAILABLE'}</p>
                 </div>
                 {buyButton}
                 {product.lpMeta?.category === 'custom-jackets' ? (
@@ -348,10 +366,10 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
               const itemPrice = item.priceRange.minVariantPrice;
               return (
                 <Link key={item.id} href={`/products/${item.handle}`} className="group lp-focus-ring block min-w-0">
-                  <span className="lp-media lp-media--zoom relative block aspect-[4/5]">
-                    {image ? <Image src={image.url} alt={item.title} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" /> : null}
+                  <span className="lp-media lp-media--glitch relative block aspect-[4/5]">
+                    {image ? <Image src={image.url} alt={item.title} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain" /> : null}
                   </span>
-                  <span className="lp-label mt-2 block truncate text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{item.title}</span>
+                  <span className="lp-title lp-title-sm mt-3 block truncate text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">{item.title}</span>
                   <span className="lp-log block">{formatPrice(itemPrice.amount, itemPrice.currencyCode)}</span>
                 </Link>
               );
@@ -360,12 +378,8 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
         </Panel>
       ) : null}
 
-      <StatusStrip>
-        ITEM DOSSIER · {itemCode(product)} · {statusMeta.label} · {formatPrice(price.amount, price.currencyCode)}
-      </StatusStrip>
-
       {/* mobile sticky buy bar */}
-      <div className={`lp-dock md:hidden ${buyBarVisible ? 'translate-y-0' : 'pointer-events-none translate-y-full'} !bottom-[var(--lp-dock-h)] transition-transform duration-300 ease-lp`} aria-hidden={!buyBarVisible}>
+      {COMMERCE_ENABLED ? <div className={`lp-dock md:hidden ${buyBarVisible ? 'translate-y-0' : 'pointer-events-none translate-y-full'} !bottom-[var(--lp-dock-h)] transition-transform duration-300 ease-lp`} aria-hidden={!buyBarVisible}>
         <div className="flex items-center gap-2">
           <span className="min-w-0 flex-1">
             <span className="lp-label block truncate text-[var(--lp-color-text-strong)]">{product.title}</span>
@@ -375,7 +389,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
             {adding ? '…' : justAdded ? '✓' : `ADD · ${formatPrice(price.amount, price.currencyCode)}`}
           </button>
         </div>
-      </div>
+      </div> : null}
     </div>
   );
 }

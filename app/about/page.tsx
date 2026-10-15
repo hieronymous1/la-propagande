@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { getAboutSections } from '@/lib/queries/content';
+import { getAboutSections, splitAboutContent } from '@/lib/queries/content';
 import { PageHeader, Panel, PanelTitleBar } from '@/components/system/Primitives';
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const ART = ['/images/brand/slogan-old-world.webp', '/images/brand/slogan-new-world.webp', '/images/brand/slogan-not-televised.webp', '/images/brand/slogan-lied-to.webp'];
 
 export default async function AboutPage() {
-  const sections = await getAboutSections();
+  const { intro, heading, sections } = splitAboutContent(await getAboutSections());
 
   return (
     <div className="lp-shell lp-page-pad space-y-4">
@@ -23,10 +23,21 @@ export default async function AboutPage() {
             <Image src="/images/brand/photo-street-sign.webp" alt="La Propagande sigil on a street sign in Beirut" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" priority />
           </div>
           <div className="flex flex-col justify-center gap-4 p-4 md:p-8">
-            <p className="lp-display lp-display-lg m-0 text-[var(--lp-color-text-strong)]">The old world is dying and the new struggles to be born.</p>
-            <p className="lp-body m-0 text-[var(--lp-color-text-muted)]">A label, an archive and a network of nodes. Clothes as leaflets; events as broadcasts; the shop as a terminal into a hidden cultural record.</p>
+            <p className="lp-display lp-display-lg m-0 text-[var(--lp-color-text-strong)]">{heading ?? 'The old world is dying and the new struggles to be born.'}</p>
+            <p className="lp-body m-0 text-[var(--lp-color-text-muted)]">{intro ?? 'A label, an archive and a network of nodes. Clothes as leaflets; events as broadcasts; the shop as a terminal into a hidden cultural record.'}</p>
           </div>
         </div>
+      </Panel>
+
+      <Panel reveal={1} className="overflow-hidden">
+        <Image
+          src="/images/client/manifesto.webp"
+          alt="La Propagande manifesto: For the dreamers of yesterday. For the visionaries of tomorrow. For those who dare to do different. For the misfits who turn chaos into beauty. For the rockstars born in the wrong century. For the rebel minds, defiant and untamed. Welcome to the revolution."
+          width={1200}
+          height={1821}
+          sizes="(max-width: 768px) 100vw, 640px"
+          className="mx-auto h-auto w-full max-w-[640px]"
+        />
       </Panel>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -34,7 +45,7 @@ export default async function AboutPage() {
           <Panel key={section.id ?? section.label} reveal={index + 1} className="flex flex-col">
             <PanelTitleBar title={section.label} meta={`0${index + 1}`} />
             <div className="flex-1 p-4">
-              <p className="lp-body m-0">{section.body}</p>
+              <p className="lp-body m-0 whitespace-pre-line">{section.body}</p>
             </div>
           </Panel>
         ))}

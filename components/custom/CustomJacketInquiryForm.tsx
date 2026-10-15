@@ -110,7 +110,7 @@ export default function CustomJacketInquiryForm() {
   if (submitted) {
     return (
       <div className="lp-panel lp-panel--accent lp-reveal space-y-2 p-4" role="status">
-        <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">Inquiry Received</p>
+        <p className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">Inquiry Received</p>
         <p className="lp-body m-0">
           We manually review each custom request. Next step is a curated follow-up with jacket, print, and patch options that fit your direction.
         </p>
@@ -122,21 +122,31 @@ export default function CustomJacketInquiryForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="grid gap-2 md:grid-cols-2">
-        <input type="text" name="name" placeholder="Name *" required className={textInputClass} />
-        <input type="email" name="email" placeholder="Email *" required className={textInputClass} />
-        <input type="text" name="phoneWhatsapp" placeholder="Phone / WhatsApp" className={textInputClass} />
-        <input type="text" name="city" placeholder="City" className={textInputClass} />
-        <input type="text" name="reference" placeholder="Reference" className={textInputClass} />
-        <input
-          type="number"
-          name="patchQuantity"
-          min={0}
-          step={1}
-          placeholder="Patch Quantity"
-          className={textInputClass}
-          inputMode="numeric"
-        />
+      <div className="grid gap-x-2 gap-y-3 md:grid-cols-2">
+        <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">NAME <span className="text-[var(--lp-color-primary-400)]">*</span></span>
+          <input type="text" name="name" required autoComplete="name" className={textInputClass} />
+        </label>
+        <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">EMAIL <span className="text-[var(--lp-color-primary-400)]">*</span></span>
+          <input type="email" name="email" required autoComplete="email" className={textInputClass} />
+        </label>
+        <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">PHONE / WHATSAPP</span>
+          <input type="text" name="phoneWhatsapp" autoComplete="tel" className={textInputClass} />
+        </label>
+        <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">CITY</span>
+          <input type="text" name="city" autoComplete="address-level2" className={textInputClass} />
+        </label>
+        <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">REFERENCE</span>
+          <input type="text" name="reference" placeholder="Link or product name" className={textInputClass} />
+        </label>
+<label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">PATCH QUANTITY</span>
+          <input type="number" name="patchQuantity" min={0} step={1} className={textInputClass} inputMode="numeric" />
+        </label>
       </div>
 
       <fieldset className="space-y-2 border border-[var(--lp-color-border-subtle)] p-3">
@@ -195,12 +205,10 @@ export default function CustomJacketInquiryForm() {
         </div>
       </fieldset>
 
-      <textarea
-        name="notes"
-        placeholder="Notes"
-        rows={4}
-        className="lp-textarea"
-      />
+      <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">NOTES</span>
+          <textarea name="notes" rows={4} className="lp-textarea" />
+        </label>
 
       <label className="lp-body lp-body-sm flex items-start gap-3 border border-[var(--lp-color-border-subtle)] bg-[rgba(0,0,0,0.25)] px-3 py-3">
         <input type="checkbox" name="consent" required className="mt-[3px] h-4 w-4 shrink-0 accent-[var(--lp-color-primary-500)]" />

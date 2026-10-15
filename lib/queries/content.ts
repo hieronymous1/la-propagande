@@ -138,9 +138,27 @@ export async function getLocationEntries(): Promise<LocationEntry[]> {
         hours: entry.hours,
       }));
 
-    return entries.length > 0 ? entries : shouldUseShopifyFallbacks() ? LOCATION_FALLBACK_ENTRIES : [];
+    // Retain live showroom addresses while keeping obsolete pop-ups out of the
+    // site until Shopify's selling points have been reviewed for this revision.
+    const showrooms = entries.filter((entry) => entry.kind === 'showroom');
+    const sellingPoints = process.env.SHOPIFY_SELLING_POINTS_SOURCE === 'cms'
+      ? entries.filter((entry) => entry.kind === 'selling_point')
+      : LOCATION_FALLBACK_ENTRIES.filter((entry) => entry.kind === 'selling_point');
+    return [
+      ...(showrooms.length ? showrooms : LOCATION_FALLBACK_ENTRIES.filter((entry) => entry.kind === 'showroom')),
+      ...sellingPoints,
+    ];
   } catch (error) {
     if (shouldUseShopifyFallbacks()) return LOCATION_FALLBACK_ENTRIES;
     throw error;
   }
+}
+
+/** Optional Intro / Intro heading entries let Marc edit the About hero too. */
+export function splitAboutContent(sections: AboutSection[]) {
+  return {
+    intro: sections.find((section) => section.label.toLowerCase() === 'intro')?.body,
+    heading: sections.find((section) => section.label.toLowerCase() === 'intro heading')?.body,
+    sections: sections.filter((section) => !['intro', 'intro heading'].includes(section.label.toLowerCase())),
+  };
 }

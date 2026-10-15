@@ -44,35 +44,26 @@ export default function ContributionForm() {
   if (submitted) {
     return (
       <div className="lp-panel lp-panel--accent lp-reveal space-y-2 p-4" role="status">
-        <p className="lp-display lp-display-sm m-0 text-[var(--lp-color-text-strong)]">Transmission received</p>
+        <p className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">Transmission received</p>
         <p className="lp-body lp-body-sm m-0">Your fragment is in the recovery queue. We review every submission by hand.</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      <input
-        type="text"
-        name="name"
-        placeholder="Name"
-        required
-        className="lp-input"
-      />
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        required
-        className="lp-input"
-      />
-      <textarea
-        name="message"
-        placeholder="What did you find, and where?"
-        rows={5}
-        required
-        className="lp-textarea"
-      />
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">NAME <span className="text-[var(--lp-color-primary-400)]">*</span></span>
+          <input type="text" name="name" required autoComplete="name" className="lp-input" />
+        </label>
+      <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">EMAIL <span className="text-[var(--lp-color-primary-400)]">*</span></span>
+          <input type="email" name="email" required autoComplete="email" className="lp-input" />
+        </label>
+      <label className="block space-y-[6px]">
+          <span className="lp-log block text-[var(--lp-color-text-muted)]">WHAT DID YOU FIND, AND WHERE? <span className="text-[var(--lp-color-primary-400)]">*</span></span>
+          <textarea name="message" rows={5} required className="lp-textarea" />
+        </label>
       <button
         type="submit"
         disabled={submitting}
