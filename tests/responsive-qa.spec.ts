@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const BREAKPOINTS = [
   { width: 1024, height: 768 },
@@ -23,13 +23,16 @@ test.describe('Responsive QA matrix', () => {
         expect(hasOverflow, `${route} overflows at ${viewport.width}px`).toBe(false);
 
         if (viewport.width >= 768) {
-          await expect(page.getByRole('navigation').getByLabel('Search or command input').first()).toBeVisible();
+          await expect(page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Open command palette' })).toBeVisible();
         } else {
+          // mobile bottom bar: command palette entry + menu sheet
+          await expect(page.getByRole('button', { name: 'Open command palette' })).toBeVisible();
           const menuToggle = page.getByRole('button', { name: 'MENU' });
           await expect(menuToggle).toBeVisible();
           await menuToggle.click();
-          await expect(page.getByText('COMMAND.SHEET')).toBeVisible();
+          await expect(page.getByRole('dialog', { name: 'Menu' }).getByText('COMMAND.SHEET')).toBeVisible();
           await page.getByRole('button', { name: 'CLOSE' }).click();
+          await expect(page.getByRole('dialog', { name: 'Menu' })).toBeHidden();
         }
       }
     });
@@ -39,7 +42,7 @@ test.describe('Responsive QA matrix', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
 
-    await expect(page.getByText('SYSTEM LOG')).not.toBeVisible();
+    await expect(page.getByText('SYSTEM LOG')).toBeHidden();
     await expect(page.getByRole('button', { name: 'MENU' })).toBeVisible();
     await expect(page.getByRole('button', { name: /ABOUT/i })).toBeVisible();
     await expect(page.getByText('ARCHIVE INDEX', { exact: true })).toBeVisible();

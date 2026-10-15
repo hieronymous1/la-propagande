@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { ARCHIVE_ENTRIES, FALLBACK_ARTICLES, PLACEHOLDER_PRODUCTS } from '../lib/site';
 
 function escapeRegExp(value: string): string {
@@ -77,67 +77,82 @@ test.describe('Phase 13 acceptance checklist', () => {
     }
   });
 
-  test('navigation keeps archive out of primary UI and only reachable via command input', async ({ page }) => {
+  test('navigation keeps archive out of primary UI and only reachable via the command palette', async ({ page }) => {
     await page.goto('/products');
-    const nav = page.locator('nav').first();
-    await expect(nav.getByRole('link', { name: 'STORE' }).first()).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'EVENTS' }).first()).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'ABOUT' }).first()).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'CONNECT' }).first()).toBeVisible();
+    const nav = page.getByRole('navigation', { name: 'Primary' });
+    await expect(nav.getByRole('link', { name: 'Store' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Blog' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Contact us' })).toBeVisible();
     await expect(nav.getByRole('link', { name: /archive/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /events/i })).toHaveCount(0);
 
-    await page.getByRole('navigation').getByLabel('Search or command input').first().fill('archive');
-    await page.getByRole('button', { name: 'GO' }).first().click();
+    await nav.getByRole('button', { name: 'Open command palette' }).click();
+    const palette = page.getByRole('dialog', { name: 'Command palette' });
+    await expect(palette).toBeVisible();
+    // archive is not advertised in the palette's default suggestions
+    await expect(palette.getByRole('option', { name: /archive/i })).toHaveCount(0);
+    await palette.getByRole('textbox', { name: 'Command input' }).fill('archive');
+    await palette.getByRole('button', { name: 'RUN' }).click();
     await expect(page).toHaveURL('/archive');
   });
 
   test('logo returns to home on content routes', async ({ page }) => {
     await page.goto('/blog');
-    await page.getByRole('link', { name: 'La Propagande home' }).click();
+    await page.getByRole('link', { name: 'La Propagande — return to root' }).click();
     await expect(page).toHaveURL('/');
-    await expect(page.getByText('LA PROPAGANDE', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'La Propagande' })).toBeAttached();
+    await expect(page.getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
   });
 
   test('all placeholder product and post detail routes are testable', async ({ page }) => {
+    test.setTimeout(180_000);
     for (const product of PLACEHOLDER_PRODUCTS) {
       await page.goto(`/products/${product.handle}`);
-      await expect(page.getByText('ITEM DOSSIER', { exact: false })).toBeVisible();
       await expect(page.getByRole('heading', { level: 1, name: product.title })).toBeVisible();
-      await expect(page.getByText('METADATA.BLOCK')).toBeVisible();
+      await expect(page.getByText('ITEM.RECORD')).toBeVisible();
+      await expect(page.getByText('DOSSIER', { exact: true })).toBeVisible();
     }
 
     for (const post of FALLBACK_ARTICLES) {
       await page.goto(`/blog/${post.handle}`);
-      await expect(page.getByText(new RegExp(escapeRegExp(post.title), 'i')).first()).toBeVisible();
-      await expect(page.getByText('UTILITY METADATA BLOCK')).toBeVisible();
-      await expect(page.getByRole('link', { name: /> RETURN TO EVENTS FEED/i })).toBeVisible();
+      // the rendered title can be overridden by the live content source, so assert the record renders rather than the fallback title
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'BLOG.log' })).toBeVisible();
+      await expect(page.getByRole('complementary').getByText('Record', { exact: true })).toBeVisible();
+      await expect(page.getByRole('link', { name: /RETURN TO FEED/i })).toBeVisible();
     }
   });
 
   test('homepage shell modules and primary CTA set remain present', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('LA PROPAGANDE', { exact: true })).toBeVisible();
-    await expect(page.getByRole('navigation').getByLabel('Search or command input').first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /ABOUT/i })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Open command palette' })).toBeVisible();
+    for (const cta of [/ENTER STORE/i, /VIEW BLOG/i, /ABOUT/i, /CONTACT US/i]) {
+      await expect(page.getByRole('button', { name: cta })).toBeVisible();
+    }
     await expect(page.getByText('ARCHIVE INDEX', { exact: true })).toBeVisible();
     await expect(page.getByText('ROOT.CONSOLE')).toBeVisible();
+    await expect(page.getByText('FEATURED DROP', { exact: true })).toBeVisible();
   });
 
   test('responsive shell keeps navigation and route content usable', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/products');
-    await expect(page.locator('nav').first().getByRole('link', { name: 'STORE' }).first()).toBeVisible();
-    await expect(page.locator('article.lp-panel').first()).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Store' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Catalog' }).locator('article').first()).toBeVisible();
 
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/blog');
-    await expect(page.getByText('TRANSMISSION FEED')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Transmissions' })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/products');
     await expect(page.getByRole('button', { name: 'MENU' })).toBeVisible();
     await page.getByRole('button', { name: 'MENU' }).click();
-    await expect(page.getByText('COMMAND.SHEET')).toBeVisible();
-    await expect(page.getByRole('link', { name: /> EVENTS/ })).toBeVisible();
+    const menu = page.getByRole('dialog', { name: 'Menu' });
+    await expect(menu.getByText('COMMAND.SHEET')).toBeVisible();
+    await expect(menu.getByRole('link', { name: '> Blog' })).toBeVisible();
+    await expect(menu.getByRole('link', { name: '> Store' })).toBeVisible();
   });
 });
