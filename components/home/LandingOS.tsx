@@ -44,17 +44,6 @@ const NODE_STRIP = ['NODE-17 PARIS', 'NODE-03 BEIRUT', 'MIRROR WEST-2', 'GATEWAY
 
 const DIRECTORY = ['/root', '├─ /store', '│  ├─ /tops', '│  ├─ /bottoms', '│  ├─ /accessories', '│  └─ /custom-jackets', '├─ /blog', '├─ /about', '├─ /locations', '├─ /contact', '└─ /archive  [restricted]'];
 
-const SLOGANS = [
-  '/images/brand/slogan-designed.webp',
-  '/images/brand/slogan-marketed.webp',
-  '/images/brand/slogan-manipulated.webp',
-  '/images/brand/slogan-used-against-you.webp',
-  '/images/brand/slogan-researched.webp',
-  '/images/brand/slogan-packaged.webp',
-  '/images/brand/slogan-movements-sold.webp',
-  '/images/brand/slogan-lied-to.webp',
-];
-
 /* the label's own photography, cut into the console like a monitored feed */
 const FEED = [
   { src: '/images/brand/photo-tee-back.webp', caption: 'SIGIL TEE · BACK' },
@@ -399,17 +388,6 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                 <p className="lp-log m-0">USER: GUEST · REGION: PAR/BEY · SHORTCUTS: S E A C · ⌘K</p>
               </div>
             </Panel>
-          </div>
-        </div>
-
-        {/* SLOGAN STRIP — the brand's own artwork */}
-        <div className="lp-shell mt-3">
-          <div className="lp-ticker lp-panel overflow-hidden" aria-hidden="true">
-            <div className="lp-ticker__track" style={{ gap: 0, paddingRight: 0 }}>
-              {[...SLOGANS, ...SLOGANS].map((src, i) => (
-                <Image key={`${src}-${i}`} src={src} alt="" width={240} height={170} sizes="(max-width: 768px) 200px, 255px" className="h-[140px] w-auto border-r border-[var(--lp-color-border-subtle)] md:h-[180px]" />
-              ))}
-            </div>
           </div>
         </div>
       </div>

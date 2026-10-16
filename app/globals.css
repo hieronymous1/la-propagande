@@ -1197,6 +1197,63 @@ video {
     transform: translateX(0);
   }
 
+  /* ---------- manifesto broadcast ---------- */
+  .lp-broadcast__tv {
+    position: relative;
+    height: min(92vh, 62vw);
+    min-height: 420px;
+    overflow: hidden;
+    background: #000;
+    cursor: none;
+  }
+
+  .lp-broadcast__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .lp-broadcast__scan,
+  .lp-broadcast__vig { position: absolute; inset: 0; pointer-events: none; }
+  .lp-broadcast__scan { background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px); }
+  .lp-broadcast__vig { background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.75) 100%); }
+
+  .lp-broadcast__osd {
+    position: absolute;
+    pointer-events: none;
+    font-family: var(--lp-font-label);
+    font-size: clamp(11px, 1.1vw, 15px);
+    letter-spacing: 0.18em;
+    color: var(--lp-color-text-strong);
+    text-shadow: 2px 0 rgba(255, 0, 0, 0.5), -2px 0 rgba(0, 255, 255, 0.35);
+  }
+  .lp-broadcast__osd--tl { left: 3%; top: 5%; }
+  .lp-broadcast__osd--tr { right: 3%; top: 5%; text-align: right; }
+  .lp-broadcast__osd--bl { left: 3%; bottom: 6%; }
+  .lp-broadcast__osd--br { right: 3%; bottom: 6%; text-align: right; }
+
+  .lp-broadcast__pause { display: none; font-size: clamp(18px, 2.4vw, 32px); }
+  .lp-broadcast__tv[data-paused] .lp-broadcast__pause { display: inline; }
+  .lp-broadcast__tv[data-paused] .lp-broadcast__play { display: none; }
+
+  .lp-broadcast__cursor {
+    position: absolute;
+    left: -100px;
+    pointer-events: none;
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+    border: 1px solid var(--lp-color-text-strong);
+    mix-blend-mode: difference;
+    transition: transform 0.15s;
+  }
+  .lp-broadcast__tv[data-paused] .lp-broadcast__cursor { transform: scale(1.6); }
+
+  @media (hover: none) {
+    .lp-broadcast__tv { cursor: auto; }
+    .lp-broadcast__cursor { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .lp-broadcast__tv { height: 78vh; min-height: 0; }
+  }
+
   /* ---------- ticker ---------- */
   .lp-ticker {
     overflow: hidden;

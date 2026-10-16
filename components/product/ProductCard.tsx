@@ -99,7 +99,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
               alt={selectedImage.altText ?? product.title}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
-              className="object-contain"
+              className="object-cover"
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-[var(--lp-color-bg-2)]">

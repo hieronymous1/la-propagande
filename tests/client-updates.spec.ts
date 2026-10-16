@@ -24,13 +24,13 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       await page.screenshot({ path: testInfo.outputPath('demo-opener.png') });
     });
 
-    test('catalog and detail galleries show uncropped photos with manual controls', async ({ page }, testInfo) => {
+    test('catalog cards fill their frame; detail gallery stays uncropped; both have manual controls', async ({ page }, testInfo) => {
       await page.addInitScript(() => sessionStorage.setItem('lp-demo-notice-dismissed', 'true'));
       await page.goto('/products');
       const card = page.locator('article').filter({ has: page.getByRole('button', { name: /^Next photo of / }) }).first();
       await expect(card).toBeVisible();
       const image = card.locator('img').first();
-      await expect(image).toHaveCSS('object-fit', 'contain');
+      await expect(image).toHaveCSS('object-fit', 'cover');
       const initial = await image.getAttribute('src');
       await card.getByRole('button', { name: /^Next photo of / }).click();
       await expect(image).not.toHaveAttribute('src', initial!);
@@ -104,7 +104,6 @@ test('client document artwork appears on each requested page without cropping', 
   await page.addInitScript(() => sessionStorage.setItem('lp-demo-notice-dismissed', 'true'));
   // natural sizes of the client artwork; the rendered box must keep the same aspect ratio (no cropping)
   const ARTWORK = [
-    { route: '/', filename: 'manifesto', width: 1200, height: 1821 },
     { route: '/about', filename: 'manifesto', width: 1200, height: 1821 },
     { route: '/contact', filename: 'connect-no-qr', width: 994, height: 1600 },
     { route: '/custom-jackets', filename: 'born-from-revolt', width: 1995, height: 1200 },
