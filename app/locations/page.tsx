@@ -1,12 +1,21 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { getLocationEntries } from '@/lib/queries/content';
+import { locationMapUrl } from '@/lib/site';
 import { MetaList, PageHeader, Panel, PanelTitleBar, StatusChip } from '@/components/system/Primitives';
 
 export const metadata: Metadata = {
   title: 'Locations',
   description: 'La Propagande showrooms in Badaro and Ashrafieh, Fearlove Vintage Shop in Beirut, and online platforms across Lebanon and Oman.',
 };
+
+function MapLink({ entry }: { entry: { title: string; address: string } }) {
+  const href = locationMapUrl(entry) ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.address.replace(/\n/g, ', '))}`;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="lp-btn lp-btn--sm">
+      OPEN IN MAPS <span className="lp-btn__arrow">&gt;</span>
+    </a>
+  );
+}
 
 export default async function LocationsPage() {
   const entries = await getLocationEntries();
@@ -25,22 +34,10 @@ export default async function LocationsPage() {
           {showrooms.map((entry, index) => (
             <Panel key={entry.id} ticks reveal={index} className="overflow-hidden">
               <PanelTitleBar title={entry.title} meta="BY APPOINTMENT" />
-              <div className="grid gap-4 p-4 sm:grid-cols-[120px_1fr]">
-                <div className="lp-media relative aspect-square">
-                  <Image src={index % 2 === 0 ? '/images/brand/photo-showroom-rack.webp' : '/images/brand/photo-popup-rack.webp'} alt="" fill sizes="120px" className="object-cover" />
-                </div>
-                <div className="space-y-3">
-                  <p className="lp-body m-0 whitespace-pre-line text-[var(--lp-color-text-strong)]">{entry.address}</p>
-                  {entry.note ? <StatusChip label={entry.note} tone="accent" /> : null}
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.address.replace(/\n/g, ', '))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="lp-btn lp-btn--sm"
-                  >
-                    OPEN IN MAPS <span className="lp-btn__arrow">&gt;</span>
-                  </a>
-                </div>
+              <div className="space-y-3 p-4">
+                <p className="lp-body m-0 whitespace-pre-line text-[var(--lp-color-text-strong)]">{entry.address}</p>
+                {entry.note ? <StatusChip label={entry.note} tone="accent" /> : null}
+                <MapLink entry={entry} />
               </div>
             </Panel>
           ))}
@@ -62,6 +59,7 @@ export default async function LocationsPage() {
                     ...(entry.note ? [{ label: 'Note', value: entry.note }] : []),
                   ]}
                 />
+                <MapLink entry={entry} />
               </div>
             </Panel>
           ))}

@@ -1251,7 +1251,7 @@ video {
   }
 
   @media (max-width: 768px) {
-    .lp-broadcast__tv { height: 78vh; min-height: 0; }
+    .lp-broadcast__tv { height: min(78vh, 120vw); min-height: 0; }
   }
 
   /* ---------- ticker ---------- */

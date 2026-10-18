@@ -115,6 +115,17 @@ export const LOCATION_FALLBACK_ENTRIES: LocationEntry[] = [
   },
 ];
 
+const plusCodeMap = (code: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${code} Beirut`)}`;
+
+/** Client-supplied map pins, matched on title so Shopify-sourced entries pick them up too. */
+export function locationMapUrl(entry: Pick<LocationEntry, 'title'>): string | undefined {
+  const title = entry.title.toLowerCase();
+  if (title.includes('badaro')) return plusCodeMap('VGG8+73M');
+  if (title.includes('ashrafieh')) return plusCodeMap('VGJH+3W8'); // Factory 4376
+  if (title.includes('fearlove')) return 'https://maps.app.goo.gl/NLRwnUVdXUt5rohT6';
+  return undefined;
+}
+
 export function splitDescriptionAndFileNotes(descriptionHtml: string, fallbackNotes?: string): { descriptionHtml: string; fileNotes?: string } {
   const notes: string[] = [];
   const cleaned = descriptionHtml.replace(/<p>\s*FILE NOTES:\s*([\s\S]*?)<\/p>/gi, (_match, note) => {

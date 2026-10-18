@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 // signal dies, then the manifesto plays over the brand's own photos as red-bar captions.
 // Canvas-drawn; the full text is mirrored in an sr-only list.
 
-const SPEED = 0.6; // global pacing multiplier — lower is faster
+const SPEED = 0.8; // global pacing multiplier — lower is faster
 
 type Shot = {
   type: 'arc' | 'card' | 'photo' | 'flash' | 'static' | 'end';
@@ -122,6 +122,12 @@ export default function ManifestoBroadcast() {
       const r = Math.max(W / img.width, H / img.height) * zoom, w = img.width * r, h = img.height * r;
       cx.drawImage(img, (W - w) * ox, (H - h) * oy, w, h);
     };
+    // portrait screens: show landscape cards whole instead of cropping them to a slice
+    const fit = (img: HTMLImageElement, zoom = 1) => {
+      if (W >= H) return cover(img, zoom);
+      const r = Math.min(W / img.width, H / img.height) * zoom, w = img.width * r, h = img.height * r;
+      cx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+    };
     const noise = (a: number, mode: GlobalCompositeOperation = 'overlay') => {
       cx.save();
       cx.globalAlpha = a; cx.globalCompositeOperation = mode;
@@ -189,9 +195,9 @@ export default function ManifestoBroadcast() {
       } else if (type === 'flash' && ready) {
         cx.filter = 'contrast(1.25) saturate(1.2) brightness(.7)'; cover(img!, z * (1.06 + p * 0.06), ox, oy); cx.filter = 'none'; noise(0.18);
       } else if (type === 'card' && ready) {
-        cover(img!, 1 + 0.035 * Math.max(0, 1 - el / 160)); noise(0.12);
+        fit(img!, 1 + 0.035 * Math.max(0, 1 - el / 160)); noise(0.12);
       } else if (type === 'end' && ready) {
-        cover(img!, 1); noise(0.12);
+        fit(img!, 1); noise(0.12);
         cx.font = `${Math.min(W * 0.016, 20)}px "Retro Computer"`; cx.fillStyle = '#120302'; cx.textAlign = 'center';
         cx.globalAlpha = Math.min(1, Math.max(0, (el - 500 * SPEED) / 400));
         cx.fillText('WELCOME TO THE REVOLUTION', W / 2, H * 0.8);

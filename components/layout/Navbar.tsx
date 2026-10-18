@@ -75,7 +75,7 @@ export default function Navbar() {
           <Link href="/" className="group lp-focus-ring relative flex min-h-[44px] shrink-0 items-center gap-[10px]" aria-label="La Propagande — return to root">
             <Image src="/images/lp-logo-red.png" alt="" width={34} height={34} priority className="h-[30px] w-[30px] object-contain transition-transform duration-300 ease-lp group-hover:rotate-[22deg]" />
             <span className="flex flex-col leading-none">
-              <span className="lp-label whitespace-nowrap text-[var(--lp-color-text-strong)]">La Propagande</span>
+              <Image src="/images/lp-text-logo-cropped.png" alt="La Propagande" width={2732} height={609} className="lp-wordmark h-auto w-[112px] invert" />
               <span className="lp-log mt-[3px] hidden items-center sm:flex gap-2 text-[var(--lp-color-text-dim)]">
                 <span>PAR ↔ BEY</span>
                 <span aria-hidden className="lp-signal-meter">

@@ -39,12 +39,14 @@ export default function Footer() {
         <div className="space-y-3">
           <Link href="/" className="inline-flex min-h-[44px] items-center gap-3 lp-focus-ring">
             <Image src="/images/lp-logo-red.png" alt="" width={40} height={40} className="h-[36px] w-[36px] object-contain" />
-            <span className="lp-title lp-title-md text-[var(--lp-color-text-strong)]">La Propagande</span>
+            <Image src="/images/lp-text-logo-cropped.png" alt="La Propagande" width={2732} height={609} className="lp-wordmark h-auto w-[150px] invert" />
           </Link>
-          <p className="lp-body lp-body-sm m-0 max-w-[40ch] text-[var(--lp-color-text-muted)]">
-            Born from revolt and war. A cultural archive that also contains a store, events and a network of nodes between Paris and Beirut.
-          </p>
-          <p className="lp-log m-0">NODE LP_PAR-BEY_01 · SIGNAL STABLE · © {year}</p>
+          <p className="lp-log m-0">© {year}</p>
+          <div className="lp-body lp-body-sm max-w-[40ch] space-y-3 text-[var(--lp-color-text-muted)]">
+            <p className="m-0">Underground clothing brand for the rebel minds.</p>
+            <p className="m-0">Streetwear • Vintage Militaria &amp; Workwear • Custom jackets</p>
+            <p className="m-0">From Beirut to Paris, for the World.</p>
+          </div>
         </div>
 
         <nav aria-label="Footer" className="space-y-2">
