@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 import vm from 'node:vm';
 import ts from 'typescript';
+import * as rateLimit from '../lib/rate-limit.js';
 
 const require = createRequire(import.meta.url);
 const validation = require('../lib/cart-validation.js');
@@ -19,6 +20,7 @@ function loadRoute(path) {
     '@/lib/cart-validation': validation,
     '@/lib/runtime': { getSiteOrigin: () => 'https://www.lapropagande.net' },
     '@/lib/queries/cart': { createCart: async () => cart, addToCart: async () => cart },
+    '@/lib/rate-limit': rateLimit,
   };
   vm.runInNewContext(outputText, { exports, URL, console, require: name => {
     if (!(name in imports)) throw new Error(`Unexpected import: ${name}`);

@@ -7,6 +7,12 @@
 - `SITE_ORIGIN`
 - `NEXT_PUBLIC_FORMSPREE_ID`
 - `NEXT_PUBLIC_CUSTOM_JACKETS_FORM_ENDPOINT` (optional override; defaults to `https://formsubmit.co/ajax/lapropagandeparisbey@outlook.com`)
+- `NEXT_PUBLIC_COMMERCE_ENABLED` (fails closed: ordering is enabled only by the exact value `true`; unset or any other value shows the demo notice and makes the cart API return 403. It is inlined at build time, so redeploy after changing it.)
+
+## Abuse Protection
+- `/api/inquiry`, `/api/launch-signup`, `POST /api/cart`, `/api/cart/lines` and `/api/visitors` have in-memory per-IP rate limits (`lib/rate-limit.js`). These are best-effort per serverless instance only.
+- The durable layer is a Vercel Firewall rate-limit rule on `/api/*` (Project → Firewall → Rate limiting). Configure it before taking paying customers.
+- Security headers, including a report-only Content-Security-Policy, are set in `next.config.mjs`. Review browser console CSP reports before switching it to enforcing.
 
 ## Pre-Deploy Checklist
 1. Copy `.env.example` keys into production environment variables.

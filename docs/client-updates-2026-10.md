@@ -5,7 +5,7 @@ Implementation is in the local working tree. Deployment and live checkout activa
 ## Implemented
 
 - Dismissible opening notice with the requested demo wording, launch email form, Escape/close controls and a persistent way to reopen it. Dismissal lasts for the browser session.
-- Ordering defaults to disabled through `NEXT_PUBLIC_COMMERCE_ENABLED`. Product/cart controls and cart API routes respect the same flag.
+- Ordering defaults to disabled through `NEXT_PUBLIC_COMMERCE_ENABLED`: it fails closed, so only the exact value `true` enables ordering and an unset, misspelled or `false` value keeps the demo. Product/cart controls and cart API routes respect the same flag.
 - Product images use uncropped presentation with slideshow navigation where multiple photos exist.
 - Main Instagram links use `_lapropagande`; archive Instagram links use `lapropagande.psyops`.
 - Blog articles support selected Instagram posts/reels through Shopify article tags, with optional `lap.instagram_url` metafield support. Visitors choose when to load embeds.
@@ -65,7 +65,7 @@ recording disabled because the bundled Chromium/FFmpeg tools were unavailable.
 
 ## Payment, cart and delivery launch checklist
 
-Keep `NEXT_PUBLIC_COMMERCE_ENABLED` unset or `false` until all launch checks pass.
+Keep `NEXT_PUBLIC_COMMERCE_ENABLED` unset or `false` until all launch checks pass. Only the exact value `true` enables ordering.
 
 1. Confirm the Shopify store's legal business details, selling currency and owner-approved payment provider. The owner completes provider onboarding, identity checks and payout banking in Shopify Admin.
 2. Configure shipping origin, supported destinations, delivery zones, rates, packaging/weights and any pickup option. Confirm exclusions, delivery estimates, taxes/duties and how customs charges are communicated.

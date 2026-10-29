@@ -2,10 +2,13 @@ import { COMMERCE_ENABLED, DEMO_MESSAGE } from '@/lib/commerce';
 import { NextResponse } from 'next/server';
 import {
   isAllowedRequestOrigin,
+  MAX_CART_LINES,
   normalizeCartId,
   normalizeCartLines,
   normalizeLineIds,
+  readJsonBody,
 } from '@/lib/cart-validation';
+import { cartLinesRateLimiter, rateLimitResponse } from '@/lib/rate-limit';
 import {
   addToCart,
   removeFromCart,
@@ -33,12 +36,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Request origin is not allowed' }, { status: 403 });
   }
 
-  let payload: CartLinesPayload;
+  // Best-effort per-instance cap; the Vercel WAF rule is the durable layer (see lib/rate-limit.js).
+  const limited = rateLimitResponse(request, cartLinesRateLimiter);
+  if (limited) return limited;
 
-  try {
-    payload = (await request.json()) as CartLinesPayload;
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  const body = await readJsonBody(request);
+  if (!body.ok) {
+    return body.status === 413
+      ? NextResponse.json({ error: 'Request body is too large' }, { status: 413 })
+      : NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+  const payload = body.data as CartLinesPayload;
+
+  if (
+    (Array.isArray(payload.lines) && payload.lines.length > MAX_CART_LINES) ||
+    (Array.isArray(payload.lineIds) && payload.lineIds.length > MAX_CART_LINES)
+  ) {
+    return NextResponse.json({ error: `At most ${MAX_CART_LINES} lines per request` }, { status: 400 });
   }
 
   const cartId = normalizeCartId(payload.cartId);

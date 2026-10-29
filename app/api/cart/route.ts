@@ -2,6 +2,7 @@ import { COMMERCE_ENABLED, DEMO_MESSAGE } from '@/lib/commerce';
 import { NextResponse } from 'next/server';
 import { isAllowedRequestOrigin, normalizeCartId } from '@/lib/cart-validation';
 import { createCart, getCart } from '@/lib/queries/cart';
+import { cartCreateRateLimiter, rateLimitResponse } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,10 @@ export async function POST(request: Request) {
 
   const originError = rejectCrossSite(request);
   if (originError) return originError;
+
+  // Best-effort per-instance cap; the Vercel WAF rule is the durable layer (see lib/rate-limit.js).
+  const limited = rateLimitResponse(request, cartCreateRateLimiter);
+  if (limited) return limited;
 
   try {
     const cart = await createCart();

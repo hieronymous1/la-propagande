@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { handleInquiry } from '../lib/inquiry.js';
 
-const request = (data, origin = 'https://www.lapropagande.net') => new Request('https://www.lapropagande.net/api/inquiry', {
-  method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+let clientIp = 0;
+// Each request comes from a distinct client so the per-IP rate limiter (tested separately) never trips here.
+const request = (data, origin = 'https://www.lapropagande.net', ip = `198.51.100.${++clientIp % 250}`) => new Request('https://www.lapropagande.net/api/inquiry', {
+  method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'X-Forwarded-For': ip }, body: JSON.stringify(data),
 });
 const valid = { inquiryType: 'archive', name: 'Test visitor', email: 'visitor@example.org', message: 'An archive contribution' };
 

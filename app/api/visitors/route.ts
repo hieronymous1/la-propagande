@@ -1,12 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { recordVisit } from '@/lib/audience';
+import { rateLimitResponse, visitorsRateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
   if (origin !== request.nextUrl.origin) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  // Best-effort per-instance cap; the Vercel WAF rule is the durable layer (see lib/rate-limit.js).
+  const limited = rateLimitResponse(request, visitorsRateLimiter, { count: null });
+  if (limited) return limited;
   const cookie = request.cookies.get('lp_visitor')?.value;
   const visitor = cookie && /^[a-f0-9-]{36}$/.test(cookie) ? cookie : randomUUID();
   try {

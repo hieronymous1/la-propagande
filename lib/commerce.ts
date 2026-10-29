@@ -1,3 +1,4 @@
-// The storefront is live. An explicit false remains available as an emergency switch.
-export const COMMERCE_ENABLED = process.env.NEXT_PUBLIC_COMMERCE_ENABLED !== 'false';
+// Fail closed: ordering is enabled only when NEXT_PUBLIC_COMMERCE_ENABLED is exactly 'true'.
+// Unset, misspelled or any other value keeps the demo notice and disables cart routes.
+export const COMMERCE_ENABLED = process.env.NEXT_PUBLIC_COMMERCE_ENABLED === 'true';
 export const DEMO_MESSAGE = 'Demo version — ordering is not available yet.';

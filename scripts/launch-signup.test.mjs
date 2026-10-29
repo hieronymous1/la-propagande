@@ -4,8 +4,10 @@ import { handleLaunchSignup } from '../lib/launch-signup.js';
 
 const env = { LAUNCH_SIGNUP_ENDPOINT: 'https://formspree.io/f/example' };
 const valid = { email: 'visitor@example.org', consent: true };
-const request = (data = valid, origin = 'https://lapropagande.net') => new Request('https://lapropagande.net/api/launch-signup', {
-  method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+let clientIp = 0;
+// Each request comes from a distinct client so the per-IP rate limiter (tested separately) never trips here.
+const request = (data = valid, origin = 'https://lapropagande.net', ip = `198.51.100.${++clientIp % 250}`) => new Request('https://lapropagande.net/api/launch-signup', {
+  method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'X-Forwarded-For': ip }, body: JSON.stringify(data),
 });
 
 test('launch signup rejects cross-site, invalid email, missing consent, honeypot, oversized bodies', async () => {
