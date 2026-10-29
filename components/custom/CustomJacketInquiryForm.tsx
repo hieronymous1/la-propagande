@@ -59,17 +59,14 @@ export default function CustomJacketInquiryForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const form = event.currentTarget;
     setError(null);
-
-    const endpoint =
-      process.env.NEXT_PUBLIC_CUSTOM_JACKETS_FORM_ENDPOINT ||
-      'https://formsubmit.co/ajax/lapropagandeparisbey@outlook.com';
 
     const data = new FormData(event.currentTarget);
     setSubmitting(true);
 
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -99,7 +96,7 @@ export default function CustomJacketInquiryForm() {
       }
 
       setSubmitted(true);
-      event.currentTarget.reset();
+      form.reset();
     } catch {
       setError('Inquiry transmission failed. Please retry or use Contact.');
     } finally {
@@ -110,7 +107,7 @@ export default function CustomJacketInquiryForm() {
   if (submitted) {
     return (
       <div className="lp-panel lp-panel--accent lp-reveal space-y-2 p-4" role="status">
-        <p className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">Inquiry Received</p>
+        <span className="lp-received-stamp">INQUIRY RECEIVED</span>
         <p className="lp-body m-0">
           We manually review each custom request. Next step is a curated follow-up with jacket, print, and patch options that fit your direction.
         </p>
@@ -133,7 +130,7 @@ export default function CustomJacketInquiryForm() {
         </label>
         <label className="block space-y-[6px]">
           <span className="lp-log block text-[var(--lp-color-text-muted)]">PHONE / WHATSAPP</span>
-          <input type="text" name="phoneWhatsapp" autoComplete="tel" className={textInputClass} />
+          <input type="tel" name="phoneWhatsapp" autoComplete="tel" className={textInputClass} />
         </label>
         <label className="block space-y-[6px]">
           <span className="lp-log block text-[var(--lp-color-text-muted)]">CITY</span>
@@ -224,6 +221,7 @@ export default function CustomJacketInquiryForm() {
       </button>
 
       {error ? <p className="lp-warning-box lp-log m-0" role="alert">{error}</p> : null}
+      <a className="lp-btn lp-btn--sm" href="mailto:lapropagandeparisbey@outlook.com?subject=Custom%20jacket%20inquiry">EMAIL DIRECTLY ↗</a>
     </form>
   );
 }

@@ -19,12 +19,28 @@ The metafield takes priority over the tag. Keep the article published and provid
 its title, excerpt and featured image as usual. Only Instagram post/reel HTTPS
 URLs are accepted. Profile links, scripts and other domains are rejected.
 
+The blog now includes four verified public posts, two from each account, with
+stable local thumbnails and direct links to the originals. The source records
+are in `lib/instagram-posts.ts`; the image provenance is recorded in
+`public/images/instagram/SOURCES.md`. Each card also supports the same optional
+embed, so the full original post can be loaded without copying its caption.
+The records were checked against both public profiles and individual post
+timestamps on 27 October 2026.
+
 This is a curated connection, not automatic account synchronization. The owner
 still selects posts in Shopify. Automatic import needs the owner's Meta account
 authorization and a separate token-refresh/sync integration. No posts have been
 invented or imported from an unauthenticated scrape.
 
-## Real visit count
+## Visitor counter — disabled
+
+The owner chose to keep the counter hidden on 27 October 2026. It is not
+mounted in the site layout, so browsing the site makes no visitor-count
+requests and sets no counter cookie. No database, paid service or simulated
+visitor count is needed for launch. The optional implementation below is
+retained for a future decision to enable real counting.
+
+### Optional real counting
 
 Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` on the hosting
 project, or their `KV_REST_API_URL` and `KV_REST_API_TOKEN` aliases. Use a durable

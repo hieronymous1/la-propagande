@@ -68,7 +68,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
   return (
     <article className="lp-panel lp-panel--interactive lp-reveal group flex flex-col" style={{ ['--i' as string]: Math.min(index, 12) }}>
       <div className="relative">
-      <Link href={`/products/${product.handle}`} className="lp-focus-ring block" aria-label={`${product.title} — open item record`}>
+      <Link href={`/products/${product.handle}`} className="lp-record-link lp-focus-ring block" aria-label={`${product.title} — open item record`}>
         <div
           className="lp-media relative aspect-[4/5] w-full touch-pan-y overflow-hidden border-0 border-b border-[var(--lp-color-border-subtle)]"
           onPointerDown={(event) => {
@@ -99,7 +99,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
               alt={selectedImage.altText ?? product.title}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
-              className="object-cover"
+              className="object-contain"
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-[var(--lp-color-bg-2)]">
@@ -108,6 +108,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
           )}
 
           <span className={`lp-chip absolute left-0 top-0 max-w-[60%] truncate border-l-0 border-t-0 ${compact ? 'hidden md:inline-flex' : ''}`}>{product.lpMeta?.itemCode ?? product.handle.toUpperCase()}</span>
+          <span className="lp-record-corners" aria-hidden="true" />
           {/* availability is only worth a tag when it is news */}
           {meta.status !== 'AVAILABLE' ? (
             <span className="lp-chip lp-chip--dot absolute right-0 top-0 border-r-0 border-t-0" data-tone={statusTone(meta.status)}>
@@ -143,9 +144,9 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
       </Link>
       {images.length > 1 ? (
         <div className="absolute bottom-0 right-0 flex items-center border-l border-t border-[var(--lp-color-border-default)] bg-[var(--lp-color-bg-1)]" role="group" aria-label={`${product.title} photos`}>
-          <button type="button" className="lp-btn lp-btn--icon min-h-[44px] min-w-[44px] border-0" aria-label={`Previous photo of ${product.title}`} onClick={() => setImageIndex((i) => (i - 1 + images.length) % images.length)}>&lt;</button>
-          <span className="lp-log lp-tabular px-1" aria-live="polite" aria-atomic="true">{imageIndex + 1}/{images.length}</span>
-          <button type="button" className="lp-btn lp-btn--icon min-h-[44px] min-w-[44px] border-0" aria-label={`Next photo of ${product.title}`} onClick={() => setImageIndex((i) => (i + 1) % images.length)}>&gt;</button>
+          <button type="button" className="lp-focus-ring h-11 w-8 text-xs" aria-label={`Previous photo of ${product.title}`} onClick={() => setImageIndex((i) => (i - 1 + images.length) % images.length)}>&lt;</button>
+          <span className="lp-tabular px-1 text-[9px]" aria-live="polite" aria-atomic="true">{imageIndex + 1}/{images.length}</span>
+          <button type="button" className="lp-focus-ring h-11 w-8 text-xs" aria-label={`Next photo of ${product.title}`} onClick={() => setImageIndex((i) => (i + 1) % images.length)}>&gt;</button>
         </div>
       ) : null}
       </div>

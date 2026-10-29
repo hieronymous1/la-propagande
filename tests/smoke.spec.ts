@@ -4,8 +4,8 @@ test.describe('LA PROPAGANDE smoke', () => {
   test('home route renders command-driven landing shell', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1, name: 'La Propagande' })).toBeAttached();
-    await expect(page.getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
-    await expect(page.getByText('PARIS ↔ BEIRUT · BORN FROM REVOLT AND WAR')).toBeVisible();
+    await expect(page.locator('#lp-main').getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
+    await expect(page.locator('#lp-main').getByText(/PARIS ↔ BEIRUT.*BORN FROM REVOLT/)).toBeVisible();
     await expect(page.getByText(/FASTEST PATH/i)).toHaveCount(0);
     await expect(page.getByRole('button', { name: /ENTER STORE/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /VIEW BLOG/i })).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page).toHaveURL('/products');
   });
 
-  test('store listing shows seeded product cards in demo mode (no ordering controls)', async ({ page }) => {
+  test('store listing shows product cards and gallery controls', async ({ page }) => {
     await page.goto('/products');
     await expect(page.getByRole('heading', { level: 1, name: 'Catalog' })).toBeVisible();
 
@@ -68,12 +68,11 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(cards.first().getByRole('link', { name: /open item record/ })).toHaveAttribute('href', /^\/products\//);
     await expect(cards.first().getByRole('button', { name: /^Next photo of / })).toBeVisible();
 
-    // NEXT_PUBLIC_COMMERCE_ENABLED is false: catalog is browse-only
-    await expect(page.getByRole('button', { name: 'ADD TO CART' })).toHaveCount(0);
+    await expect(page.getByText('DEMO · ORDERING COMING SOON')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Increase quantity' })).toHaveCount(0);
   });
 
-  test('product detail route renders full dossier metadata and demo-disabled controls', async ({ page }) => {
+  test('product detail route renders dossier metadata and ordering controls', async ({ page }) => {
     await page.goto('/products/eyes');
 
     await expect(page.getByRole('heading', { level: 1, name: 'Eyes Behind My Back - OVERSIZE T-Shirt' })).toBeVisible();
@@ -100,8 +99,7 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page.getByText('DESCRIPTION.LOG')).toBeVisible();
     await expect(page.getByText('RELATED RECORDS', { exact: true })).toBeVisible();
 
-    // demo mode: ordering is disabled, never offered
-    await expect(page.getByRole('button', { name: 'DEMO · ORDERING COMING SOON' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'DEMO · ORDERING COMING SOON' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Increase quantity' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'ADD TO CART' })).toHaveCount(0);
   });
@@ -120,21 +118,12 @@ test.describe('LA PROPAGANDE smoke', () => {
     await page.goto('/blog');
 
     await expect(page.getByText('BLOG.log', { exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1, name: 'Transmissions' })).toBeVisible();
-    await expect(page.getByText(/^PINNED · TX-\d+/)).toBeVisible();
-    await expect(page.getByText(/^FEED/).first()).toBeVisible();
-
-    const feedRows = page.getByRole('list').locator('a[href^="/blog/"]');
-    expect(await feedRows.count()).toBeGreaterThanOrEqual(6);
-
-    // each row carries a TX id, category/location/status chips, title, excerpt and cover image
-    const firstRow = feedRows.first();
-    await expect(firstRow).toContainText(/TX-\d+/);
-    await expect(firstRow).toContainText(/LOGGED/);
-    await expect(firstRow.getByRole('heading', { level: 3 })).toBeVisible();
-    await expect(firstRow.getByRole('img')).toBeVisible();
-
-    await expect(page.getByRole('link', { name: /FOLLOW @_LAPROPAGANDE/ })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Blog' })).toBeVisible();
+    const cards = page.locator('[data-blog-card]');
+    expect(await cards.count()).toBeGreaterThanOrEqual(3);
+    await expect(cards.first().getByRole('heading', { level: 2 })).toBeVisible();
+    await expect(cards.first().getByRole('img')).toBeVisible();
+    await expect(page.getByRole('link', { name: '@_LAPROPAGANDE ↗', exact: true })).toBeVisible();
   });
 
   test('transmission detail route renders record sections, metadata block, and related links', async ({ page }) => {
@@ -159,12 +148,11 @@ test.describe('LA PROPAGANDE smoke', () => {
     await expect(page.getByRole('img', { name: 'Flyer' })).toBeVisible();
   });
 
-  test('cart drawer opens in demo mode and closes', async ({ page }) => {
+  test('empty live cart drawer opens and closes', async ({ page }) => {
     await page.goto('/products');
     await page.getByRole('button', { name: 'Open cart, 0 items' }).click();
     await expect(page.getByRole('dialog', { name: 'Cart' })).toBeVisible();
-    // demo mode: the drawer explains ordering is unavailable instead of listing lines/checkout
-    await expect(page.getByText('Demo version — ordering is not available yet.')).toBeVisible();
+    await expect(page.getByText('Buffer empty', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: /CHECKOUT/i })).toHaveCount(0);
     await page.getByRole('button', { name: 'Close cart' }).click();
     await expect(page.getByRole('dialog', { name: 'Cart' })).toBeHidden();

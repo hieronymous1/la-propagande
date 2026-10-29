@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePalette } from '@/components/system/CommandPalette';
 import { useCart } from '@/components/store/CartProvider';
 
@@ -38,22 +38,32 @@ export default function Navbar() {
   const { cartCount, openCart } = useCart();
   const { open: openPalette } = usePalette();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const previousPathname = useRef(pathname);
   const [clock, setClock] = useState('');
 
   useEffect(() => {
-    setMenuOpen(false);
+    if (previousPathname.current !== pathname) setMenuOpen(false);
+    previousPathname.current = pathname;
   }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    menuRef.current?.querySelector<HTMLElement>('a[href]')?.focus();
     document.body.style.overflow = 'hidden';
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const onResize = () => { if (desktop.matches) setMenuOpen(false); };
+    desktop.addEventListener('change', onResize);
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMenuOpen(false);
     };
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = '';
+      desktop.removeEventListener('change', onResize);
       window.removeEventListener('keydown', onKey);
+      opener?.focus({ preventScroll: true });
     };
   }, [menuOpen]);
 
@@ -72,20 +82,16 @@ export default function Navbar() {
 
       <nav className="lp-topbar" aria-label="Primary">
         <div className="lp-shell flex h-[var(--lp-topbar-h)] items-center gap-3 md:gap-5">
-          <Link href="/" className="group lp-focus-ring relative flex min-h-[44px] shrink-0 items-center gap-[10px]" aria-label="La Propagande — return to root">
-            <Image src="/images/lp-logo-red.png" alt="" width={34} height={34} priority className="h-[30px] w-[30px] object-contain transition-transform duration-300 ease-lp group-hover:rotate-[22deg]" />
-            <span className="flex flex-col leading-none">
-              <Image src="/images/lp-text-logo-cropped.png" alt="La Propagande" width={2732} height={609} className="lp-wordmark h-auto w-[112px] invert" />
-              <span className="lp-log mt-[3px] hidden items-center sm:flex gap-2 text-[var(--lp-color-text-dim)]">
-                <span>PAR ↔ BEY</span>
-                <span aria-hidden className="lp-signal-meter">
-                  <span className="lp-signal-bar lp-signal-bar-1" />
-                  <span className="lp-signal-bar lp-signal-bar-2" />
-                  <span className="lp-signal-bar lp-signal-bar-3" />
-                  <span className="lp-signal-bar lp-signal-bar-4" />
-                </span>
-              </span>
-            </span>
+          <Link href="/" className="lp-focus-ring relative inline-flex h-[48px] w-[40px] shrink-0 items-center justify-center overflow-hidden" aria-label="La Propagande — return to root">
+            <Image
+              src="/images/lp-logo-red.png"
+              alt="La Propagande"
+              width={1888}
+              height={1334}
+              sizes="80px"
+              priority
+              className="absolute h-[56px] w-[80px] max-w-none object-contain brightness-150"
+            />
           </Link>
 
           <div className="hidden min-w-0 flex-1 md:flex lg:max-w-[560px]">
@@ -106,10 +112,11 @@ export default function Navbar() {
 
           <div className="ml-auto hidden items-center gap-1 md:flex">
             {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="lp-nav-link" data-active={isActivePath(pathname, link.match) ? 'true' : undefined}>
+              <Link key={link.href} href={link.href} className="lp-nav-link hidden lg:inline-flex" data-active={isActivePath(pathname, link.match) ? 'true' : undefined}>
                 {link.label}
               </Link>
             ))}
+            <button type="button" onClick={() => setMenuOpen((current) => !current)} className="lp-btn lp-btn--sm lg:hidden" aria-expanded={menuOpen} aria-controls="lp-command-sheet">MENU</button>
             <button onClick={openCart} className="lp-btn lp-btn--sm ml-2" aria-label={`Open cart, ${cartCount} items`}>
               CART <CartCount count={cartCount} />
             </button>
@@ -144,12 +151,22 @@ export default function Navbar() {
       </div>
 
       {menuOpen ? (
-        <div id="lp-command-sheet" className="lp-sheet md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className="lp-shell flex h-[var(--lp-topbar-h)] items-center justify-between border-b border-[var(--lp-color-border-accent)]">
+        <div ref={menuRef} id="lp-command-sheet" className="lp-sheet lg:hidden" role="dialog" aria-modal="true" aria-label="Menu" onKeyDown={(event) => {
+          if (event.key !== 'Tab') return;
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('a[href], button'));
+          const first = items[0];
+          const last = items[items.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault(); last?.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault(); first?.focus();
+          }
+        }}>
+          <div className="lp-shell flex h-[var(--lp-topbar-h)] shrink-0 items-center justify-between border-b border-[var(--lp-color-border-accent)]">
             <span className="lp-label text-[var(--lp-color-text-strong)]">COMMAND.SHEET</span>
             <span className="lp-log lp-tabular">{clock}</span>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {[...NAV_LINKS.map((l) => ({ label: l.label, href: l.href, match: l.match as readonly string[] })), { label: 'Custom Jackets', href: '/custom-jackets', match: [] }, { label: 'Locations', href: '/locations', match: [] }].map(
               (link, i) => (
                 <Link
@@ -166,7 +183,7 @@ export default function Navbar() {
               )
             )}
           </div>
-          <div className="lp-shell grid grid-cols-[1fr_auto] gap-2 border-t border-[var(--lp-color-border-subtle)] py-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+          <div className="lp-shell grid shrink-0 grid-cols-[minmax(0,1fr)_auto] gap-2 border-t border-[var(--lp-color-border-subtle)] py-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={() => {

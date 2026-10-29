@@ -95,13 +95,13 @@ export default function CartDrawer() {
                         <p className="lp-label m-0 whitespace-nowrap text-[var(--lp-color-primary-300)]">{formatPrice(lineTotal, line.merchandise.price.currencyCode)}</p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <div className="inline-flex items-center border border-[var(--lp-color-border-default)]" role="group" aria-label="Quantity">
-                          <button onClick={() => updateQuantity(line.id, line.quantity - 1)} className="lp-btn lp-btn--ghost h-9 w-9 border-0 border-r border-[var(--lp-color-border-default)] p-0" aria-label="Decrease quantity">
+                          <button onClick={() => updateQuantity(line.id, line.quantity - 1)} className="lp-btn lp-btn--ghost h-11 w-11 border-0 border-r border-[var(--lp-color-border-default)] p-0" aria-label="Decrease quantity">
                             −
                           </button>
                           <span className="lp-ui lp-tabular w-9 text-center">{line.quantity}</span>
-                          <button onClick={() => updateQuantity(line.id, line.quantity + 1)} className="lp-btn lp-btn--ghost h-9 w-9 border-0 border-l border-[var(--lp-color-border-default)] p-0" aria-label="Increase quantity">
+                          <button onClick={() => updateQuantity(line.id, line.quantity + 1)} className="lp-btn lp-btn--ghost h-11 w-11 border-0 border-l border-[var(--lp-color-border-default)] p-0" aria-label="Increase quantity">
                             +
                           </button>
                         </div>

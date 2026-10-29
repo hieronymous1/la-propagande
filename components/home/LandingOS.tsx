@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffects, EffectsToggle } from '@/components/system/EffectsProvider';
 import { CommandText, Panel, PanelTitleBar, StatusChip } from '@/components/system/Primitives';
 
 interface FeaturedProduct {
@@ -58,20 +59,19 @@ const FEED_INTERVAL = 4200;
 function SignalFeed() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const { enabled } = useEffects();
 
   useEffect(() => {
-    if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (paused || !enabled) return;
     const id = window.setInterval(() => setIndex((current) => (current + 1) % FEED.length), FEED_INTERVAL);
     return () => window.clearInterval(id);
-  }, [paused]);
+  }, [paused, enabled]);
 
   const current = FEED[index];
 
   return (
     <figure
       className="lp-feed m-0"
-      onPointerEnter={() => setPaused(true)}
-      onPointerLeave={() => setPaused(false)}
       aria-label="La Propagande photography"
     >
       <div className="lp-feed__screen">
@@ -96,6 +96,11 @@ function SignalFeed() {
         <span className="lp-tabular text-[var(--lp-color-text-dim)]">
           {String(index + 1).padStart(2, '0')}/{String(FEED.length).padStart(2, '0')}
         </span>
+        <span className="lp-feed-controls">
+          <button type="button" className="lp-focus-ring" aria-label="Previous photograph" onClick={() => setIndex((i) => (i + FEED.length - 1) % FEED.length)}>‹</button>
+          <button type="button" className="lp-focus-ring" aria-label={paused ? 'Play photography' : 'Pause photography'} aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? '▶' : 'Ⅱ'}</button>
+          <button type="button" className="lp-focus-ring" aria-label="Next photograph" onClick={() => setIndex((i) => (i + 1) % FEED.length)}>›</button>
+        </span>
       </figcaption>
     </figure>
   );
@@ -115,6 +120,12 @@ function shortDate(value: string) {
 
 export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
   const router = useRouter();
+  const { enabled } = useEffects();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (enabled) void videoRef.current?.play().catch(() => {});
+    else videoRef.current?.pause();
+  }, [enabled]);
   const [bootIndex, setBootIndex] = useState(0);
   const [bootDone, setBootDone] = useState(true);
   const [execText, setExecText] = useState<string | null>(null);
@@ -125,7 +136,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
   // boot once per session
   useEffect(() => {
     const seen = window.sessionStorage.getItem('lp_booted') === '1';
-    if (seen) return;
+    if (seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     setBootDone(false);
     const timer = window.setInterval(() => {
       setBootIndex((current) => {
@@ -196,22 +207,24 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
 
   function execute(route: string, execName: string) {
     setExecText(`EXECUTING ${execName} ...`);
-    window.setTimeout(() => router.push(route), 220);
+    router.push(route);
   }
 
   function openArchive() {
     window.sessionStorage.setItem('lp_archive_access', 'granted');
     setExecText('EXECUTING ARCHIVE.sys ... ACCESS LIMITED');
-    window.setTimeout(() => router.push('/archive'), 260);
+    router.push('/archive');
   }
 
   return (
-    <div className="lp-home-stage relative min-h-[calc(100vh-var(--lp-topbar-h))] w-full overflow-hidden bg-black">
+    <div className="lp-home-stage relative min-h-[calc(100svh-var(--lp-topbar-h))] w-full overflow-hidden bg-black">
+      {!enabled ? <Image src="/media/home-poster.jpg" alt="" fill priority sizes="100vw" className="lp-home-veil absolute inset-0 z-[var(--lp-z-video)] object-cover opacity-[0.55] saturate-0" /> : null}
       <video
+        ref={videoRef}
         src="/media/home-loop.mp4"
         poster="/media/home-poster.jpg"
         className="lp-home-veil absolute inset-0 z-[var(--lp-z-video)] h-full w-full object-cover opacity-[0.55] saturate-0 contrast-[1.15]"
-        autoPlay
+        autoPlay={enabled}
         muted
         loop
         playsInline
@@ -223,10 +236,10 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
       <div className="lp-home-veil lp-noise lp-scanlines lp-vignette absolute inset-0 z-[var(--lp-z-noise)]" aria-hidden="true" />
 
       <div className="relative z-[var(--lp-z-panel)] lp-page-pad">
-        <div className="lp-shell grid items-start gap-3 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
-          <div className="grid content-start gap-3">
+        <div className="lp-shell lp-home-canvas grid grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <div className="grid min-w-0 content-start gap-3">
           {/* ROOT CONSOLE */}
-          <Panel ticks reveal={0} className="lp-console bg-[rgba(5,5,5,0.8)]">
+          <Panel ticks reveal={0} className="lp-console">
             <PanelTitleBar title="ROOT.CONSOLE" meta="SESSION: GUEST-LOCAL" />
             <div className="relative overflow-hidden p-4 md:p-6">
               <Image
@@ -237,7 +250,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                 aria-hidden
                 className="pointer-events-none absolute -right-10 -top-6 w-[320px] opacity-[0.2] mix-blend-screen saturate-0 [mask-image:radial-gradient(closest-side,#000_45%,transparent_100%)] md:w-[460px] md:opacity-[0.28] lg:hidden"
               />
-              <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(220px,34%)] lg:items-stretch lg:gap-8">
+              <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1fr)_200px] xl:items-stretch xl:gap-5">
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Image
@@ -249,9 +262,9 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                     className="lp-wordmark h-auto w-[min(100%,620px)] invert"
                     sizes="(max-width: 768px) calc(100vw - 64px), 620px"
                   />
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <div className="lp-home-identity">
                     <h1 className="lp-sr-only">La Propagande</h1>
-                    <p className="lp-label m-0 text-[var(--lp-color-text-main)]">PARIS ↔ BEIRUT · BORN FROM REVOLT AND WAR</p>
+                    <p className="lp-label m-0 text-[var(--lp-color-text-main)]">PARIS ↔ BEIRUT<br />BORN FROM REVOLT</p>
                   </div>
                 </div>
 
@@ -273,11 +286,12 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                   ))}
                 </div>
 
-                <p className={`lp-log m-0 text-[var(--lp-color-primary-300)] empty:hidden md:min-h-[18px] md:empty:block ${execText ? 'lp-command-output' : ''}`} aria-live="polite">
-                  {execText ?? ''}
-                </p>
+                <div className="lp-console-status">
+                  <p className={`lp-log m-0 text-[var(--lp-color-primary-300)] ${execText ? 'lp-command-output' : ''}`} aria-live="polite">{execText ?? ''}</p>
+                  <EffectsToggle />
+                </div>
               </div>
-              <div className="hidden lg:block">
+              <div className="hidden xl:block">
                 <SignalFeed />
               </div>
               </div>
@@ -285,12 +299,13 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
           </Panel>
 
             {featured.length > 0 ? (
-              <Panel reveal={4}>
+              <Panel reveal={4} className="lp-drop-panel">
                 <PanelTitleBar title="FEATURED DROP" meta="STORE.exe" action={<Link href="/products" className="lp-ui-sm lp-tap text-[var(--lp-color-primary-300)] hover:text-[var(--lp-color-text-strong)]">OPEN CATALOG &gt;</Link>} />
                 <div className="flex snap-x snap-mandatory scroll-px-3 gap-2 overflow-x-auto p-3 [scrollbar-width:none] md:grid md:grid-cols-3 md:overflow-visible">
                   {featured.map((product) => (
-                    <Link key={product.handle} href={`/products/${product.handle}`} className="group lp-focus-ring block w-[72vw] max-w-[300px] shrink-0 snap-start md:w-auto md:max-w-none">
+                    <Link key={product.handle} href={`/products/${product.handle}`} className="group lp-record-link lp-focus-ring block w-[72vw] max-w-[300px] shrink-0 snap-start md:w-auto md:max-w-none">
                       <span className="lp-media relative block aspect-[3/2]">
+                        <span className="lp-record-corners" aria-hidden="true" />
                         <Image src={product.image} alt={product.title} fill sizes="(max-width: 768px) 72vw, 360px" className="object-contain" />
                         <span className="lp-chip absolute left-0 top-0 max-w-[calc(100%-8px)] truncate border-l-0 border-t-0">
                           {product.code}
@@ -309,11 +324,11 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="grid content-start gap-3">
-            <button type="button" onClick={openArchive} className="group text-left lp-focus-ring" aria-label="Open the archive — access limited">
-              <Panel interactive accent reveal={1} className="overflow-hidden">
+          <div className="grid min-w-0 content-start gap-3">
+            <button type="button" onClick={openArchive} className="group min-w-0 text-left lp-focus-ring" aria-label="Open the archive — access limited">
+              <Panel interactive accent reveal={1} className="lp-archive-index">
                 <PanelTitleBar title="ARCHIVE INDEX" meta="STATUS: DEGRADED" />
-                <div className="grid grid-cols-[96px_1fr] gap-3 p-3">
+                <div className="grid grid-cols-[80px_minmax(0,1fr)] gap-3 p-3 sm:grid-cols-[96px_minmax(0,1fr)]">
                   <span className="lp-media lp-media--degraded lp-media--scan relative block aspect-square">
                     <Image src="/images/brand/frame-nam-01.jpg" alt="" fill sizes="96px" className="object-cover" />
                   </span>
@@ -331,7 +346,7 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
               </Panel>
             </button>
 
-            <Panel reveal={2} className="hidden md:block">
+            <Panel reveal={2} className="hidden md:block lp-log-panel">
               <PanelTitleBar title="SYSTEM LOG" meta="LIVE" />
               <div className="lp-log space-y-[3px] p-3" aria-live="off">
                 {logLines.map((line, i) => (
@@ -367,14 +382,16 @@ export default function LandingOS({ featured, queue, counts }: LandingOSProps) {
                 </ul>
               </Panel>
             ) : null}
-            <Panel reveal={5} className="hidden md:block">
+            <Panel reveal={5} className="hidden md:block lp-directory-panel">
               <PanelTitleBar title="DIRECTORY" meta="/ROOT" />
-              <div className="p-3">
+              <div className="lp-directory-content p-3">
+                <div>
                 {DIRECTORY.map((line) => (
-                  <p key={line} className="lp-log m-0 whitespace-pre text-[var(--lp-color-text-muted)]">
+                  <p key={line} className="lp-log m-0 whitespace-pre-wrap break-words text-[var(--lp-color-text-muted)]">
                     {line}
                   </p>
                 ))}
+                </div>
               </div>
             </Panel>
             <Panel reveal={6} className="hidden md:block">

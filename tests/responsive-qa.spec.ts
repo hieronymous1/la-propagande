@@ -31,7 +31,7 @@ test.describe('Responsive QA matrix', () => {
           await expect(menuToggle).toBeVisible();
           await menuToggle.click();
           await expect(page.getByRole('dialog', { name: 'Menu' }).getByText('COMMAND.SHEET')).toBeVisible();
-          await page.getByRole('button', { name: 'CLOSE' }).click();
+          await page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: 'CLOSE', exact: true }).click();
           await expect(page.getByRole('dialog', { name: 'Menu' })).toBeHidden();
         }
       }

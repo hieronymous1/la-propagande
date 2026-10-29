@@ -4,24 +4,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
   test.describe(`client updates ${viewport.width}px`, () => {
     test.use({ viewport });
 
-    test('demo notice closes, remembers dismissal and reopens', async ({ page }, testInfo) => {
+    test('live storefront has no demo notice or launch overlay', async ({ page }) => {
       await page.goto('/products');
-      const notice = page.getByRole('dialog', { name: 'The website is still in the works.' });
-      await expect(notice).toBeVisible();
-      await expect(notice.getByText('This is a demo version. You can’t order yet.')).toBeVisible();
-      await expect(notice.getByRole('textbox', { name: 'Email' })).toBeVisible();
-      await page.screenshot({ path: testInfo.outputPath('demo-notice.png') });
-      await notice.getByRole('button', { name: 'Close demo notice' }).click();
-      await expect(notice).toBeHidden();
-      await page.reload();
-      await expect(notice).toBeHidden();
-      const opener = page.getByRole('button', { name: 'Demo · Notify me at launch' });
-      await opener.click();
-      await expect(notice).toBeVisible();
-      await page.keyboard.press('Escape');
-      await expect(notice).toBeHidden();
-      await expect(opener).toBeFocused();
-      await page.screenshot({ path: testInfo.outputPath('demo-opener.png') });
+      await expect(page.getByRole('dialog', { name: 'The website is still in the works.' })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Demo · Notify me at launch' })).toHaveCount(0);
     });
 
     test('catalog cards fill their frame; detail gallery stays uncropped; both have manual controls', async ({ page }, testInfo) => {
@@ -30,13 +16,13 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       const card = page.locator('article').filter({ has: page.getByRole('button', { name: /^Next photo of / }) }).first();
       await expect(card).toBeVisible();
       const image = card.locator('img').first();
-      await expect(image).toHaveCSS('object-fit', 'cover');
+      await expect(image).toHaveCSS('object-fit', 'contain');
       const initial = await image.getAttribute('src');
       await card.getByRole('button', { name: /^Next photo of / }).click();
       await expect(image).not.toHaveAttribute('src', initial!);
       await card.getByRole('button', { name: /^Previous photo of / }).click();
       await expect(image).toHaveAttribute('src', initial!);
-      await expect(page.getByRole('button', { name: 'QUICK ADD', exact: true })).toHaveCount(0);
+
       await page.screenshot({ path: testInfo.outputPath('catalog.png') });
       await card.getByRole('link').first().click();
       // first visit compiles the detail route in dev, so allow longer than the default expect timeout
@@ -67,9 +53,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
           await expect(page.getByRole('button', { name: originalLabel!, exact: true })).toHaveAttribute('aria-pressed', 'false');
         }
       }
-      await expect(page.getByRole('button', { name: 'DEMO · ORDERING COMING SOON' }).first()).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'DEMO · ORDERING COMING SOON' })).toHaveCount(0);
       await expect(page.getByRole('link', { name: /GO TO CHECKOUT/ })).toHaveCount(0);
-      await expect(page.getByRole('button', { name: /^ADD ·/ })).toHaveCount(0);
+
       await gallery.blur();
       await page.screenshot({ path: testInfo.outputPath('product-detail.png'), fullPage: true });
     });
@@ -82,21 +68,17 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       for (const name of ['Doora app', 'Sookit.co', 'BuyBuy lb', 'Xhawi']) {
         await expect(page.getByText(name, { exact: true })).toBeVisible();
       }
-      await expect(page.getByRole('link', { name: /VISIT PLATFORM/ })).toHaveAttribute('href', 'https://sookit.co');
+      await expect(page.locator('a[href="https://sookit.co"]')).toBeVisible();
+      await expect(page.locator('a[href*="api.doora.app/user/69f1169c39d8f2635227597b"]')).toBeVisible();
       await page.screenshot({ path: testInfo.outputPath('locations.png'), fullPage: true });
     });
   });
 }
 
-test('demo cart API rejects creation, reads and mutations', async ({ request }) => {
-  for (const response of [
-    await request.post('/api/cart'),
-    await request.get('/api/cart?id=gid%3A%2F%2Fshopify%2FCart%2Fdemo'),
-    await request.post('/api/cart/lines', { data: { action: 'add', cartId: 'demo', lines: [] } }),
-  ]) {
-    expect(response.status()).toBe(403);
-    expect((await response.json()).error).toContain('ordering is not available');
-  }
+test('live cart API validates requests and rejects cross-site mutations', async ({ request }) => {
+  expect((await request.get('/api/cart?id=invalid')).status()).toBe(400);
+  expect((await request.post('/api/cart/lines', { data: { action: 'add', cartId: 'invalid', lines: [] } })).status()).toBe(400);
+  expect((await request.post('/api/cart', { headers: { Origin: 'https://other.example' } })).status()).toBe(403);
 });
 
 test('client document artwork appears on each requested page without cropping', async ({ page }, testInfo) => {
@@ -104,6 +86,7 @@ test('client document artwork appears on each requested page without cropping', 
   await page.addInitScript(() => sessionStorage.setItem('lp-demo-notice-dismissed', 'true'));
   // natural sizes of the client artwork; the rendered box must keep the same aspect ratio (no cropping)
   const ARTWORK = [
+    { route: '/', filename: 'manifesto', width: 1200, height: 1821 },
     { route: '/about', filename: 'manifesto', width: 1200, height: 1821 },
     { route: '/contact', filename: 'connect-no-qr', width: 994, height: 1600 },
     { route: '/custom-jackets', filename: 'born-from-revolt', width: 1995, height: 1200 },
@@ -123,5 +106,5 @@ test('client document artwork appears on each requested page without cropping', 
     await page.screenshot({ path: testInfo.outputPath(`${route.replaceAll('/', '') || 'intro'}-artwork-mobile.png`) });
   }
   await page.goto('/blog');
-  await expect(page.getByRole('link', { name: 'FOLLOW @_LAPROPAGANDE ↗' })).toHaveAttribute('href', /instagram\.com\/_lapropagande/);
+  await expect(page.getByRole('link', { name: '@_LAPROPAGANDE ↗' })).toHaveAttribute('href', /instagram\.com\/_lapropagande/);
 });

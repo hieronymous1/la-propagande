@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import NextImage from 'next/image';
+import { useEffects } from '@/components/system/EffectsProvider';
 
 // Hijacked-broadcast manifesto: archive footage hard-cut against the brand's slogan cards,
 // signal dies, then the manifesto plays over the brand's own photos as red-bar captions.
 // Canvas-drawn; the full text is mirrored in an sr-only list.
 
-const SPEED = 0.8; // global pacing multiplier — lower is faster
+const SPEED = 1.25; // Slower pacing, as requested by Marc; lower values play faster.
 
 type Shot = {
   type: 'arc' | 'card' | 'photo' | 'flash' | 'static' | 'end';
@@ -76,33 +78,46 @@ const timecode = (ms: number) => {
 };
 
 export default function ManifestoBroadcast() {
+  const { enabled } = useEffects();
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tcRef = useRef<HTMLSpanElement>(null);
   const chRef = useRef<HTMLSpanElement>(null);
   const curRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
+  const [paused, setPaused] = useState(false);
+  function togglePlayback() {
+    pausedRef.current = !pausedRef.current;
+    setPaused(pausedRef.current);
+  }
 
   useEffect(() => {
+    if (!enabled) return;
     const root = rootRef.current!;
     const cv = canvasRef.current!;
     const cx = cv.getContext('2d')!;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let W = 0, H = 0, dpr = 1, raf = 0;
+    let W = 0, H = 0, dpr = 1, raf = 0, needsPaint = true;
 
     const imgs: Record<string, HTMLImageElement> = {};
     for (const { src } of SHOTS) {
       if (src && !imgs[src]) {
         const img = new Image();
+        img.decoding = 'async';
+        img.fetchPriority = 'low';
         img.src = src.includes('/') ? `/images/${src}` : `/images/brand/${src}`;
         imgs[src] = img;
       }
     }
 
     const size = () => {
-      dpr = Math.min(window.devicePixelRatio, 2);
-      W = cv.clientWidth; H = cv.clientHeight;
-      cv.width = W * dpr; cv.height = H * dpr;
+      const nextDpr = Math.min(window.devicePixelRatio, 1.5);
+      const nextW = cv.clientWidth, nextH = cv.clientHeight;
+      if (nextW === W && nextH === H && nextDpr === dpr) return;
+      W = nextW; H = nextH; dpr = nextDpr;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      needsPaint = true;
     };
 
     const grain = Array.from({ length: 4 }, () => {
@@ -138,7 +153,9 @@ export default function ManifestoBroadcast() {
     };
     // horizontal slices shoved sideways — the damage on every cut
     const tear = (n: number, amp: number) => {
-      tearBuf.width = cv.width; tearBuf.height = cv.height;
+      if (tearBuf.width !== cv.width || tearBuf.height !== cv.height) {
+        tearBuf.width = cv.width; tearBuf.height = cv.height;
+      }
       tearBuf.getContext('2d')!.drawImage(cv, 0, 0);
       for (let i = 0; i < n; i++) {
         const y = Math.random() * H, h = 4 + Math.random() * H * 0.08;
@@ -161,11 +178,11 @@ export default function ManifestoBroadcast() {
       cx.fillStyle = '#ece7da'; cx.fillText(b, x, y); cx.restore();
     };
 
-    let idx = 0, el = 0, last = 0, visible = false, hover = false, clock = 0;
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.3 });
+    let idx = 0, el = 0, last = 0, lastPaint = 0, visible = false, clock = 0;
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.01 });
     io.observe(root);
-    const onEnter = () => { hover = true; root.dataset.paused = 'true'; };
-    const onLeave = () => { hover = false; delete root.dataset.paused; };
+    const onEnter = () => { if (curRef.current) curRef.current.style.opacity = '1'; };
+    const onLeave = () => { if (curRef.current) curRef.current.style.opacity = '0'; };
     const onMove = (e: PointerEvent) => {
       const r = root.getBoundingClientRect(), c = curRef.current!;
       c.style.left = `${e.clientX - r.left}px`; c.style.top = `${e.clientY - r.top}px`;
@@ -175,8 +192,14 @@ export default function ManifestoBroadcast() {
     root.addEventListener('pointermove', onMove);
 
     const frame = (t: number) => {
-      const dt = Math.min(80, t - (last || t)); last = t;
-      const run = visible && !hover && !document.hidden;
+      raf = requestAnimationFrame(frame);
+      // Preserve the last frame while paused/offscreen; never repaint hidden footage.
+      if (!visible || document.hidden) { last = t; return; }
+      const run = !pausedRef.current;
+      if (!run && !needsPaint) { last = t; return; }
+      if (!needsPaint && t - lastPaint < 1000 / 30) return;
+      const dt = Math.min(80, t - (last || t)); last = t; lastPaint = t;
+      needsPaint = false;
       if (run) { el += dt; clock += dt; }
       // reduced motion: same sequence, slow and without tearing/shake
       // reduced motion skips the sub-second flashes entirely
@@ -189,7 +212,6 @@ export default function ManifestoBroadcast() {
       cx.globalCompositeOperation = 'source-over'; cx.globalAlpha = 1; cx.filter = 'none';
       cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
       cx.save();
-      if (hover && !reduced) cx.translate(0, (Math.random() - 0.5) * 3);
       if (type === 'arc' && ready) {
         cx.filter = 'grayscale(1) contrast(1.45) brightness(.85)'; cover(img!, z * (1.04 + p * 0.05), ox, oy); cx.filter = 'none'; noise(0.22);
       } else if (type === 'flash' && ready) {
@@ -218,14 +240,13 @@ export default function ManifestoBroadcast() {
         tear(5 + ((Math.random() * 6) | 0), W * 0.12);
         if (el < 40) { cx.fillStyle = 'rgba(255,255,255,.08)'; cx.fillRect(0, 0, W, H); }
       }
-      // vhs tracking band — stronger while paused
-      cx.globalAlpha = hover ? 0.5 : 0.18;
-      cx.drawImage(grain[Math.floor(t / 50) % 4], 0, ((t * 0.05) % (H * 1.6)) - H * 0.3, W, hover ? 14 : 6);
+      // Tracking texture only updates while footage is actively playing.
+      cx.globalAlpha = 0.18;
+      cx.drawImage(grain[Math.floor(t / 50) % 4], 0, ((t * 0.05) % (H * 1.6)) - H * 0.3, W, 6);
       cx.globalAlpha = 1;
 
       tcRef.current!.textContent = `SP ${timecode(clock)}`;
       chRef.current!.textContent = type === 'arc' ? 'CH 04 · ARCHIVE' : type === 'photo' || type === 'flash' ? 'CH 00 · LIVE' : type === 'static' ? 'CH -- · NO SIGNAL' : 'CH 04';
-      raf = requestAnimationFrame(frame);
     };
 
     let cancelled = false;
@@ -245,14 +266,16 @@ export default function ManifestoBroadcast() {
       root.removeEventListener('pointerleave', onLeave);
       root.removeEventListener('pointermove', onMove);
     };
-  }, []);
+  }, [enabled]);
+
+  if (!enabled) return <section className="lp-broadcast lp-broadcast--still" aria-label="La Propagande manifesto"><NextImage src="/images/brand/slogan-not-televised.webp" alt="The revolution will not be televised" width={1200} height={848} className="h-auto w-full" /><div className="lp-body p-4">{TEXT.map((line) => <p key={line}>{line}</p>)}</div></section>;
 
   return (
     <section className="lp-broadcast" aria-label="La Propagande manifesto">
       <ol className="sr-only">
         {TEXT.map((line) => <li key={line}>{line}</li>)}
       </ol>
-      <div ref={rootRef} className="lp-broadcast__tv" aria-hidden="true">
+      <div ref={rootRef} id="lp-manifesto-screen" className="lp-broadcast__tv" data-paused={paused ? 'true' : undefined} aria-hidden="true">
         <canvas ref={canvasRef} className="lp-broadcast__canvas" />
         <div className="lp-broadcast__scan" />
         <div className="lp-broadcast__vig" />
@@ -264,6 +287,10 @@ export default function ManifestoBroadcast() {
         <span ref={tcRef} className="lp-broadcast__osd lp-broadcast__osd--bl">SP 00:00:00:00</span>
         <span className="lp-broadcast__osd lp-broadcast__osd--br">PARIS — BEY</span>
         <div ref={curRef} className="lp-broadcast__cursor" />
+      </div>
+      <div className="lp-broadcast__controls">
+        <span className="lp-log">MANIFESTO / PARIS ↔ BEIRUT</span>
+        <button type="button" className="lp-btn lp-btn--sm" aria-label={paused ? 'Play broadcast' : 'Pause broadcast'} aria-pressed={paused} aria-controls="lp-manifesto-screen" onClick={togglePlayback}>{paused ? 'PLAY ▶' : 'PAUSE Ⅱ'}</button>
       </div>
     </section>
   );

@@ -9,7 +9,8 @@ test.describe('Phase 13 acceptance checklist', () => {
   test('Phase 12 placeholders are fully seeded with required minimums', async () => {
     expect(PLACEHOLDER_PRODUCTS.length).toBeGreaterThanOrEqual(8);
     expect(FALLBACK_ARTICLES.length).toBeGreaterThanOrEqual(6);
-    expect(ARCHIVE_ENTRIES.length).toBeGreaterThanOrEqual(12);
+    expect(ARCHIVE_ENTRIES.length).toBeGreaterThanOrEqual(8);
+    for (const entry of ARCHIVE_ENTRIES) expect(entry.href).toBeTruthy();
 
     for (const product of PLACEHOLDER_PRODUCTS) {
       expect(product.title).toBeTruthy();
@@ -41,7 +42,6 @@ test.describe('Phase 13 acceptance checklist', () => {
       return acc;
     }, {});
 
-    expect(folderCounts.fragments ?? 0).toBeGreaterThan(0);
     expect(folderCounts.media ?? 0).toBeGreaterThan(0);
     expect(folderCounts.logs ?? 0).toBeGreaterThan(0);
     expect(folderCounts.links ?? 0).toBeGreaterThan(0);
@@ -102,7 +102,7 @@ test.describe('Phase 13 acceptance checklist', () => {
     await page.getByRole('link', { name: 'La Propagande — return to root' }).click();
     await expect(page).toHaveURL('/');
     await expect(page.getByRole('heading', { level: 1, name: 'La Propagande' })).toBeAttached();
-    await expect(page.getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
+    await expect(page.locator('#lp-main').getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
   });
 
   test('all placeholder product and post detail routes are testable', async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe('Phase 13 acceptance checklist', () => {
 
   test('homepage shell modules and primary CTA set remain present', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
+    await expect(page.locator('#lp-main').getByRole('img', { name: 'La Propagande', exact: true })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Open command palette' })).toBeVisible();
     for (const cta of [/ENTER STORE/i, /VIEW BLOG/i, /ABOUT/i, /CONTACT US/i]) {
       await expect(page.getByRole('button', { name: cta })).toBeVisible();
@@ -144,7 +144,7 @@ test.describe('Phase 13 acceptance checklist', () => {
 
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/blog');
-    await expect(page.getByRole('heading', { level: 1, name: 'Transmissions' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Blog' })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/products');

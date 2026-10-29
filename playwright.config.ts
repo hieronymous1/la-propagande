@@ -7,13 +7,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
+    channel: process.env.PLAYWRIGHT_CHANNEL,
     baseURL: 'http://127.0.0.1:3301',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: process.env.PLAYWRIGHT_CHANNEL ? 'off' : 'retain-on-failure',
   },
   webServer: {
-    command: 'ENABLE_SHOPIFY_FALLBACKS=true npm run dev -- --port 3301',
+    command: process.env.PLAYWRIGHT_BUILD
+      ? 'ENABLE_SHOPIFY_FALLBACKS=true SITE_ORIGIN=http://127.0.0.1:3301 npm start -- --port 3301'
+      : 'ENABLE_SHOPIFY_FALLBACKS=true SITE_ORIGIN=http://127.0.0.1:3301 npm run dev -- --port 3301',
     url: 'http://127.0.0.1:3301',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

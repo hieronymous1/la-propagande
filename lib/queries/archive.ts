@@ -1,4 +1,4 @@
-import { ARCHIVE_ENTRIES } from '../site';
+import { ARCHIVE_ENTRIES, CLIENT_ARCHIVE_ENTRIES } from '../site';
 import { shopifyFetch } from '../shopify';
 import { shouldUseShopifyFallbacks } from '../runtime';
 import type { ArchiveEntry } from '../site';
@@ -116,20 +116,26 @@ function mapMetaobjectToArchiveEntry(node: MetaobjectNode): ArchiveEntryWithOrde
   const type = getField(node.fields, 'type');
   const summary = getField(node.fields, 'summary');
   if (!title || !type || !summary) return null;
+  const status = parseStatus(getField(node.fields, 'status'));
 
-  const thumbnail = getMediaField(node.fields, 'thumbnail') ?? '/images/brand/frame-nam-01.jpg';
-  const href = getField(node.fields, 'href');
+  const thumbnail = getMediaField(node.fields, 'thumbnail');
+  const rawHref = getField(node.fields, 'href');
+  const href = rawHref?.includes('instagram.com/lapropagande.archive') ? 'https://www.instagram.com/lapropagande.psyops/' : rawHref;
+  // Entries that lead nowhere (no link, dead link, locked) are hidden rather than shown as broken cards.
+  if (!href || status === 'LOCKED' || /\.{3,}/.test(href)) return null;
+  const behavior = parseBehavior(getField(node.fields, 'behavior'));
+  if (behavior === 'broken-valid-link') return null;
 
   return {
     id: node.id,
     folder,
     title,
     type,
-    status: parseStatus(getField(node.fields, 'status')),
+    status,
     summary,
     thumbnail,
     href,
-    behavior: parseBehavior(getField(node.fields, 'behavior')),
+    behavior,
     sortOrder: parseSortOrder(getField(node.fields, 'sort_order')),
   };
 }
@@ -195,8 +201,8 @@ export async function getArchiveEntries(): Promise<ArchiveEntry[]> {
         behavior: entry.behavior,
       }));
 
-    if (mapped.length === 0) return shouldUseShopifyFallbacks() ? ARCHIVE_ENTRIES : [];
-    return mapped;
+    if (mapped.length === 0) return shouldUseShopifyFallbacks() ? ARCHIVE_ENTRIES : CLIENT_ARCHIVE_ENTRIES;
+    return [...mapped, ...CLIENT_ARCHIVE_ENTRIES.filter(client => !mapped.some(entry => entry.href === client.href))];
   } catch (error) {
     if (shouldUseShopifyFallbacks()) return ARCHIVE_ENTRIES;
     throw error;

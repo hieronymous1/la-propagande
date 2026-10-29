@@ -9,20 +9,16 @@ export default function ContributionForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     setError(null);
-    const formId = process.env.NEXT_PUBLIC_FORMSPREE_ID;
-    if (!formId) {
-      setError('Archive transmission endpoint is not configured.');
-      return;
-    }
-
     const data = new FormData(e.currentTarget);
     setSubmitting(true);
     try {
-      const response = await fetch(`https://formspree.io/f/${formId}`, {
+      const response = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
+          inquiryType: 'archive',
           name: data.get('name'),
           email: data.get('email'),
           message: data.get('message'),
@@ -33,9 +29,9 @@ export default function ContributionForm() {
         throw new Error(`Request failed with ${response.status}`);
       }
       setSubmitted(true);
-      e.currentTarget.reset();
+      form.reset();
     } catch {
-      setError('Transmission failed. Please retry in a moment.');
+      setError('Delivery failed. Please retry or email your contribution directly.');
     } finally {
       setSubmitting(false);
     }
@@ -44,7 +40,7 @@ export default function ContributionForm() {
   if (submitted) {
     return (
       <div className="lp-panel lp-panel--accent lp-reveal space-y-2 p-4" role="status">
-        <p className="lp-title lp-title-md m-0 text-[var(--lp-color-text-strong)]">Transmission received</p>
+        <span className="lp-received-stamp">TRANSMISSION RECEIVED</span>
         <p className="lp-body lp-body-sm m-0">Your fragment is in the recovery queue. We review every submission by hand.</p>
       </div>
     );
@@ -72,6 +68,7 @@ export default function ContributionForm() {
         {submitting ? 'SENDING...' : 'SUBMIT FRAGMENT'}
       </button>
       {error ? <p className="lp-warning-box lp-log m-0" role="alert">{error}</p> : null}
+      <a className="lp-btn lp-btn--sm" href="mailto:lapropagandeparisbey@outlook.com?subject=Archive%20contribution">EMAIL DIRECTLY ↗</a>
     </form>
   );
 }

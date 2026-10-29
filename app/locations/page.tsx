@@ -70,7 +70,7 @@ export default async function LocationsPage() {
         <h2 id="online-platforms" className="lp-label m-0 text-[var(--lp-color-primary-400)]">Online Platforms / Apps</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { title: 'Doora app', region: 'Lebanon / MENA region' },
+            { title: 'Doora app', region: 'Lebanon / MENA region', href: 'https://api.doora.app/user/69f1169c39d8f2635227597b' },
             { title: 'Sookit.co', region: undefined, href: 'https://sookit.co' },
             { title: 'BuyBuy lb', region: 'Lebanon' },
             { title: 'Xhawi', region: 'Oman' },

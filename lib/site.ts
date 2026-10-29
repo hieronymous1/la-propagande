@@ -13,7 +13,7 @@ export interface ArchiveEntry {
   status: 'AVAILABLE' | 'DEGRADED' | 'LOCKED' | 'MIRROR' | 'CORRUPTED';
   summary: string;
   href?: string;
-  thumbnail: string;
+  thumbnail?: string;
   behavior?:
     | 'delayed'
     | 'permission'
@@ -115,13 +115,11 @@ export const LOCATION_FALLBACK_ENTRIES: LocationEntry[] = [
   },
 ];
 
-const plusCodeMap = (code: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${code} Beirut`)}`;
-
 /** Client-supplied map pins, matched on title so Shopify-sourced entries pick them up too. */
 export function locationMapUrl(entry: Pick<LocationEntry, 'title'>): string | undefined {
   const title = entry.title.toLowerCase();
-  if (title.includes('badaro')) return plusCodeMap('VGG8+73M');
-  if (title.includes('ashrafieh')) return plusCodeMap('VGJH+3W8'); // Factory 4376
+  if (title.includes('badaro')) return 'https://maps.app.goo.gl/Zo39s1UH5jZZ9JsTA';
+  if (title.includes('ashrafieh') || title.includes('factory 4376')) return 'https://maps.app.goo.gl/VAFsfgL5kzLF3rUW6';
   if (title.includes('fearlove')) return 'https://maps.app.goo.gl/NLRwnUVdXUt5rohT6';
   return undefined;
 }
@@ -808,34 +806,21 @@ const LEGACY_FALLBACK_ARTICLES: Article[] = [
 export const FALLBACK_ARTICLES: Article[] = [...EVENT_SEED_POSTS.map(mapSeedPost), ...LEGACY_FALLBACK_ARTICLES];
 export const EVENT_FALLBACK_POSTS: Article[] = EVENT_SEED_POSTS.slice(0, 3).map(mapSeedPost);
 
+export const CLIENT_ARCHIVE_ENTRIES: ArchiveEntry[] = [
+  {
+    id: 'client-orwell-1984', folder: 'media', title: 'Free 1984 by George Orwell', type: 'PDF', status: 'AVAILABLE',
+    summary: 'Nineteen Eighty-Four by George Orwell. Free PDF supplied by La Propagande.',
+    href: 'https://dn790002.ca.archive.org/0/items/NineteenEightyFour-Novel-GeorgeOrwell/orwell1984.pdf',
+  },
+  {
+    id: 'client-industrial-society', folder: 'media', title: 'The Unabomber Manifesto: Industrial Society and Its Future', type: 'PDF', status: 'AVAILABLE',
+    summary: 'Industrial Society and Its Future. PDF supplied by La Propagande.',
+    href: 'https://doorofperception.com/wp-content/uploads/The-Unabomber-Manifesto.pdf',
+  },
+];
+
 export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
-  {
-    id: 'arc-001',
-    folder: 'fragments',
-    title: 'MK Ultra',
-    type: 'REPORT',
-    status: 'LOCKED',
-    summary: 'Summary of CIA experiments on mind control.',
-    thumbnail: '/images/brand/frame-cbs-1970.jpg',
-  },
-  {
-    id: 'arc-002',
-    folder: 'fragments',
-    title: 'Death of Che Guevara',
-    type: 'REPORT',
-    status: 'AVAILABLE',
-    summary: 'CIA report on the death of Che Guevara.',
-    thumbnail: '/images/brand/frame-zapruder.jpg',
-  },
-  {
-    id: 'arc-003',
-    folder: 'fragments',
-    title: 'Operation Northwoods',
-    type: 'DOSSIER',
-    status: 'LOCKED',
-    summary: 'Proposed false flag operation to spark war in Cuba.',
-    thumbnail: '/images/brand/frame-nam-01.jpg',
-  },
+  ...CLIENT_ARCHIVE_ENTRIES,
   {
     id: 'arc-004',
     folder: 'media',
@@ -844,7 +829,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Summary of CIA experimentation on mind control techniques presented to the Select Committee of Intelligence.',
     href: 'https://www.intelligence.senate.gov/wp-content/uploads/2024/08/sites-default-files-hearings-95mkultra.pdf',
-    thumbnail: '/images/brand/frame-tunisia-01.jpg',
   },
   {
     id: 'arc-005',
@@ -854,7 +838,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Essay critic of "dotcom neoliberalism".',
     href: 'https://monoskop.org/images/d/dc/Barbrook_Richard_Cameron_Andy_1996_The_Californian_Ideology.pdf',
-    thumbnail: '/images/brand/frame-moon.jpg',
   },
   {
     id: 'arc-006',
@@ -864,17 +847,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Artificial Intelligence predictions from 1945.',
     href: 'https://worrydream.com/refs/Bush%20-%20As%20We%20May%20Think%20(Life%20Magazine%209-10-1945).pdf',
-    thumbnail: '/images/brand/frame-nam-02.jpg',
-  },
-  {
-    id: 'arc-007',
-    folder: 'logs',
-    title: 'The Cyborg Manifesto',
-    type: 'PDF',
-    status: 'AVAILABLE',
-    summary: 'Socialist-Feminist essay on the internet era.',
-    href: 'https://warwick.ac.uk/fac/arts/english/currentstudents/undergraduates/modules/fictionnownarrativemediaandtheoryinthe21stcentury/manifestly_haraway_----_a_cyborg_manifesto_science_technology_and_socialist-feminism_in_the_....pdf',
-    thumbnail: '/images/brand/frame-cctv.jpg',
   },
   {
     id: 'arc-008',
@@ -884,7 +856,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Privacy and security in the modern age. Foundational document for the cypherpunk movement.',
     href: 'https://www.activism.net/cypherpunk/manifesto.html',
-    thumbnail: '/images/brand/frame-tunisia-02.jpg',
   },
   {
     id: 'arc-009',
@@ -894,7 +865,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Sail the seas.',
     href: 'https://easyussr.neocities.org/torrenting',
-    thumbnail: '/images/brand/photo-street-sign.webp',
   },
   {
     id: 'arc-010',
@@ -904,7 +874,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Open Source Intelligence basics guide.',
     href: 'https://osintframework.com',
-    thumbnail: '/images/brand/photo-popup-rack.webp',
   },
   {
     id: 'arc-011',
@@ -914,7 +883,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'AVAILABLE',
     summary: 'Public archive for books, broadcasts, and recovered media.',
     href: 'https://archive.org',
-    thumbnail: '/images/brand/photo-night-fire-2.webp',
   },
   {
     id: 'arc-012',
@@ -924,7 +892,6 @@ export const ARCHIVE_ENTRIES: ArchiveEntry[] = [
     status: 'MIRROR',
     summary: 'Mirror index for leaked records, cables, and searchable source material.',
     href: 'https://wikileaks.org',
-    thumbnail: '/images/brand/sigil-square.webp',
   },
 ];
 

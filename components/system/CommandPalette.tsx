@@ -76,11 +76,13 @@ export function PaletteProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isOpen) {
+      const opener = document.activeElement as HTMLElement | null;
       const id = window.setTimeout(() => inputRef.current?.focus(), 20);
       document.body.style.overflow = 'hidden';
       return () => {
         window.clearTimeout(id);
         document.body.style.overflow = '';
+        opener?.focus({ preventScroll: true });
       };
     }
   }, [isOpen]);
@@ -181,20 +183,32 @@ export function PaletteProvider({ children }: { children: React.ReactNode }) {
     <PaletteContext.Provider value={value}>
       {children}
       {isOpen ? (
-        <div className="fixed inset-0 z-[var(--lp-z-palette)] flex items-start justify-center bg-[rgba(0,0,0,0.78)] px-3 pt-[12vh] backdrop-blur-[3px]" onClick={close} role="presentation">
+        <div className="lp-palette-overlay fixed inset-0 z-[var(--lp-z-palette)] flex items-start justify-center bg-[rgba(0,0,0,0.78)] px-3 pt-[12dvh] backdrop-blur-[3px]" onClick={close} role="presentation">
           <div
-            className="lp-panel lp-panel--ticks lp-reveal w-full max-w-[640px] border-[var(--lp-color-border-accent)]"
+            className="lp-palette-panel lp-panel lp-panel--ticks lp-reveal flex max-h-full w-full max-w-[640px] flex-col border-[var(--lp-color-border-accent)]"
             role="dialog"
             aria-modal="true"
             aria-label="Command palette"
             onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key !== 'Tab') return;
+              const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input'));
+              const first = items[0];
+              const last = items[items.length - 1];
+              if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault(); last?.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault(); first?.focus();
+              }
+            }}
           >
-            <div className="lp-panel-title">
+            <div className="lp-panel-title shrink-0">
               <span className="lp-panel-title__name">ROOT://LP</span>
-              <span className="lp-panel-title__meta">ESC TO CLOSE · ↑↓ TO MOVE · ↵ TO RUN</span>
+              <span className="lp-panel-title__meta hidden sm:block">↑↓ TO MOVE · ↵ TO RUN</span>
+              <button type="button" className="lp-btn lp-btn--sm shrink-0" onClick={close} aria-label="Close command palette">CLOSE</button>
             </div>
             <form
-              className="lp-field m-[10px] mb-0"
+              className="lp-field m-[10px] mb-0 shrink-0"
               onSubmit={(event) => {
                 event.preventDefault();
                 submit();
@@ -226,7 +240,7 @@ export function PaletteProvider({ children }: { children: React.ReactNode }) {
               </button>
             </form>
 
-            <div className="max-h-[52vh] overflow-y-auto p-[10px]" role="listbox" aria-label="Results">
+            <div className="min-h-0 max-h-[52dvh] overflow-y-auto overscroll-contain p-[10px]" role="listbox" aria-label="Results">
               {rows.length === 0 ? (
                 <p className="lp-log m-0 px-2 py-3">{index === null ? 'LOADING INDEX...' : 'NO RESULTS. TYPE HELP.'}</p>
               ) : (

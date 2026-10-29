@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/product/ProductCard';
 import { Panel, PanelTitleBar } from '@/components/system/Primitives';
@@ -104,6 +104,7 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
   const [collection, setCollection] = useState<string>('all');
   const [query, setQuery] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const filterToggle = useRef<HTMLButtonElement>(null);
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(2);
 
   useEffect(() => {
@@ -207,6 +208,11 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
     setQuery('');
     syncToUrl('all', 'all', 'all', 'latest', 'all', '');
   };
+
+  function closeFilters() {
+    setFiltersOpen(false);
+    filterToggle.current?.focus({ preventScroll: true });
+  }
 
   const filterPanel = (
     <Panel>
@@ -355,20 +361,29 @@ export default function ProductsCatalog({ products }: ProductsCatalogProps) {
 
   return (
     <div className="lp-grid-2">
-      <aside className="space-y-2 md:sticky md:top-[calc(var(--lp-topbar-h)+12px)] md:self-start">
+      <aside className="lp-catalog-filters" data-open={filtersOpen} aria-label="Catalog filters" onKeyDown={(event) => {
+        if (event.key === 'Escape' && filtersOpen) {
+          event.preventDefault();
+          closeFilters();
+        }
+      }}>
         <button
+          ref={filterToggle}
           type="button"
           onClick={() => setFiltersOpen((open) => !open)}
           className="lp-btn lp-btn--block justify-between md:hidden"
           aria-expanded={filtersOpen}
           aria-controls="catalog-filters"
         >
-          <span>FILTERS{activeFilterCount ? ` · ${activeFilterCount} ACTIVE` : ''}</span>
-          <span className={`transition-transform duration-200 ${filtersOpen ? 'rotate-90' : ''}`}>&gt;</span>
+          <span>{filtersOpen ? 'CLOSE FILTERS' : 'FILTERS'}{activeFilterCount ? ` · ${activeFilterCount} ACTIVE` : ''}</span>
+          <span className="lp-filter-chevron" data-open={filtersOpen} aria-hidden="true">&gt;</span>
         </button>
-        <div id="catalog-filters" className={`${filtersOpen ? 'block' : 'hidden'} md:block`}>
+        <div id="catalog-filters" className={`lp-catalog-filter-body ${filtersOpen ? 'block' : 'hidden'} md:block`}>
           {filterPanel}
         </div>
+        {filtersOpen ? <button type="button" onClick={closeFilters} className="lp-btn lp-btn--primary lp-btn--block md:hidden">
+          SHOW {filteredProducts.length} RECORD{filteredProducts.length === 1 ? '' : 'S'} &gt;
+        </button> : null}
       </aside>
 
       <section className="space-y-3" aria-label="Catalog">

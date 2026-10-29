@@ -1,15 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import Ticker from '@/components/layout/Ticker';
 import { FOOTER_LINKS } from '@/lib/site';
-
-const TICKER = [
-  'THE OLD WORLD IS DYING',
-  'AND THE NEW STRUGGLES TO BE BORN',
-  'THE REVOLUTION WILL NOT BE TELEVISED',
-  'YOUR MOVEMENTS WERE SOLD TO YOU',
-  'DESIGNED · MARKETED · MANIPULATED · AND USED AGAINST YOU',
-  'PARIS ↔ BEIRUT',
-];
 
 const ROUTES: [string, string][] = [
   ['Store', '/products'],
@@ -24,21 +16,12 @@ export default function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer className="mt-10 border-t border-[var(--lp-color-border-accent)] bg-[var(--lp-color-bg-absolute)]">
-      <div className="lp-ticker border-b border-[var(--lp-color-border-subtle)] py-3" aria-hidden="true">
-        <div className="lp-ticker__track lp-title text-[17px] text-[var(--lp-color-primary-400)]">
-          {[...TICKER, ...TICKER].map((line, i) => (
-            <span key={`${line}-${i}`} className="flex items-center gap-10">
-              {line}
-              <span className="h-[6px] w-[6px] bg-[var(--lp-color-primary-700)]" />
-            </span>
-          ))}
-        </div>
-      </div>
+      <Ticker className="border-b border-[var(--lp-color-border-subtle)]" />
 
       <div className="lp-shell grid gap-6 py-8 md:grid-cols-[1.4fr_1fr_1fr] md:gap-10">
-        <div className="space-y-3">
+        <div className="space-y-3 relative">
           <Link href="/" className="inline-flex min-h-[44px] items-center gap-3 lp-focus-ring">
-            <Image src="/images/lp-logo-red.png" alt="" width={40} height={40} className="h-[36px] w-[36px] object-contain" />
+            <span className="relative block h-[44px] w-[32px] overflow-hidden"><Image src="/images/lp-logo-red.png" alt="" width={1888} height={1334} sizes="72px" className="absolute left-1/2 top-1/2 h-[50px] w-[72px] max-w-none -translate-x-1/2 -translate-y-1/2 brightness-150" /></span>
             <Image src="/images/lp-text-logo-cropped.png" alt="La Propagande" width={2732} height={609} className="lp-wordmark h-auto w-[150px] invert" />
           </Link>
           <p className="lp-log m-0">© {year}</p>

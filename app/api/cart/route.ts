@@ -2,13 +2,12 @@ import { COMMERCE_ENABLED, DEMO_MESSAGE } from '@/lib/commerce';
 import { NextResponse } from 'next/server';
 import { isAllowedRequestOrigin, normalizeCartId } from '@/lib/cart-validation';
 import { createCart, getCart } from '@/lib/queries/cart';
-import { getSiteOrigin } from '@/lib/runtime';
 
 export const dynamic = 'force-dynamic';
 
 function rejectCrossSite(request: Request): NextResponse | null {
   const origin = request.headers.get('origin');
-  if (isAllowedRequestOrigin(origin, getSiteOrigin())) return null;
+  if (isAllowedRequestOrigin(origin, new URL(request.url).origin)) return null;
   return NextResponse.json({ error: 'Request origin is not allowed' }, { status: 403 });
 }
 

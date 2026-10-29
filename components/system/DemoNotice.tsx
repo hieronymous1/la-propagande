@@ -30,18 +30,19 @@ export default function DemoNotice() {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
+    if (data.get('website')) return;
     setBusy(true);
     setError('');
     try {
       const response = await fetch('/api/launch-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(15000),
-        body: JSON.stringify({ email: data.get('email'), consent: data.get('consent') === 'on', website: data.get('website') }),
+        signal: AbortSignal.timeout(60000),
+        body: JSON.stringify({ email: String(data.get('email') || '').trim(), consent: data.get('consent') === 'on', website: data.get('website') }),
       });
       const result = await response.json();
       if (!response.ok) {
-        setError(typeof result.message === 'string' ? result.message : 'Please try again shortly.');
+        setError(typeof result.message === 'string' ? result.message : 'Could not save your email. Please try again shortly.');
         return;
       }
       setSubmitted(true);
@@ -57,7 +58,7 @@ export default function DemoNotice() {
 
   return (
     <>
-      <button ref={opener} type="button" aria-label="Demo · Notify me at launch" onClick={() => dialog.current?.showModal()} className="lp-btn fixed bottom-[calc(var(--lp-dock-h)+16px+env(safe-area-inset-bottom))] right-3 z-40 max-w-[calc(100%-104px)] bg-[var(--lp-color-bg-1)] shadow-lg md:bottom-3">
+      <button ref={opener} type="button" aria-label="Demo · Notify me at launch" onClick={() => dialog.current?.showModal()} className="lp-launch-notice-trigger lp-btn fixed bottom-[calc(var(--lp-dock-h)+16px+env(safe-area-inset-bottom))] right-3 z-40 max-w-[calc(100%-104px)] bg-[var(--lp-color-bg-1)] shadow-lg md:bottom-3">
         <span className="hidden md:inline">Demo · </span>Notify me at launch
       </button>
       <dialog
@@ -89,7 +90,10 @@ export default function DemoNotice() {
                 <span>I agree to receive an email when the shop launches. My email will only be used for this notification.</span>
               </label>
               <button type="submit" disabled={busy} className="lp-btn lp-btn--primary lp-btn--block">{busy ? 'Saving…' : 'Notify me'}</button>
-              {error && <p role="alert" className="lp-body lp-body-sm text-[var(--lp-color-status-alert)]">{error}</p>}
+              {error && <div className="space-y-2">
+                <p role="alert" className="lp-body lp-body-sm text-[var(--lp-color-status-alert)]">{error}</p>
+                <a className="lp-body lp-body-sm underline" href="mailto:lapropagandeparisbey@outlook.com?subject=Launch%20notification&body=Please%20notify%20me%20when%20La%20Propagande%20opens%20for%20orders.">Email us to join the launch list</a>
+              </div>}
             </form>
           )}
           <button type="button" onClick={dismiss} className="lp-btn lp-btn--block">Close and explore</button>

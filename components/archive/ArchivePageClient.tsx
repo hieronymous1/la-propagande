@@ -3,7 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import RetroDialog from '@/components/system/RetroDialog';
+import { useEffects } from '@/components/system/EffectsProvider';
 import ContributionForm from '@/components/archive/ContributionForm';
 import { ARCHIVE_ENTRIES, ARCHIVE_FOLLOW_LINK } from '@/lib/site';
 import type { ArchiveEntry } from '@/lib/site';
@@ -16,26 +18,9 @@ interface ArchivePageClientProps {
   initialEntries?: ArchiveEntry[];
 }
 
-const RECOVERY_FRAMES = [
-  '/images/brand/frame-cbs-1970.jpg',
-  '/images/brand/frame-zapruder.jpg',
-  '/images/brand/frame-nam-01.jpg',
-  '/images/brand/frame-tunisia-01.jpg',
-  '/images/brand/frame-moon.jpg',
-  '/images/brand/frame-nam-02.jpg',
-  '/images/brand/frame-cctv.jpg',
-  '/images/brand/frame-tunisia-02.jpg',
-  '/images/brand/photo-street-sign.webp',
-  '/images/brand/photo-popup-rack.webp',
-  '/images/brand/photo-night-fire-2.webp',
-  '/images/brand/sigil-square.webp',
-  '/images/brand/photo-bags.webp',
-  '/images/brand/photo-tee-beach.webp',
-];
-
-/** Entries seeded in Shopify still point at the old placeholder SVGs; route those to real archival frames. */
-function resolveThumbnail(entry: ArchiveEntry, index: number): string {
-  if (!entry.thumbnail || entry.thumbnail.includes('/placeholders/')) return RECOVERY_FRAMES[index % RECOVERY_FRAMES.length];
+/** Seeded Shopify entries still point at old placeholder SVGs; those render as text-only cards instead of unrelated filler imagery. */
+function resolveThumbnail(entry: ArchiveEntry): string | undefined {
+  if (!entry.thumbnail || entry.thumbnail.includes('/placeholders/')) return undefined;
   return entry.thumbnail;
 }
 
@@ -56,6 +41,23 @@ function statusTone(status: ArchiveEntry['status']): ChipTone {
 
 export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: ArchivePageClientProps) {
   const router = useRouter();
+  const { enabled } = useEffects();
+  const restoreTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  useEffect(() => {
+    const timers = restoreTimers.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
+  function cancelRestore(id: string) {
+    clearTimeout(restoreTimers.current.get(id));
+    restoreTimers.current.delete(id);
+  }
+  function startRestore(id: string) {
+    cancelRestore(id);
+    restoreTimers.current.set(id, setTimeout(() => {
+      setRestored((current) => new Set(current).add(id));
+      restoreTimers.current.delete(id);
+    }, 700));
+  }
   const searchParams = useSearchParams();
   const [accessChecked, setAccessChecked] = useState(false);
   const [denied, setDenied] = useState(false);
@@ -87,6 +89,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
   // recovery scan ticks up towards 24%
   useEffect(() => {
     if (!accessChecked) return;
+    if (!enabled) { setScan(24); return; }
     let value = 0;
     const id = window.setInterval(() => {
       value += 1;
@@ -94,7 +97,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
       if (value >= 24) window.clearInterval(id);
     }, 45);
     return () => window.clearInterval(id);
-  }, [accessChecked]);
+  }, [accessChecked, enabled]);
 
   useEffect(() => {
     if (!alert) return;
@@ -180,7 +183,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
           <Panel reveal={0}>
             <PanelTitleBar title="TREE" meta="/ARCHIVE" />
             <div className="p-2">
-              {FOLDERS.map((item) => (
+              {FOLDERS.filter((item) => item.id === 'all' || counts[item.id]).map((item) => (
                 <button
                   key={item.id}
                   type="button"
@@ -245,14 +248,21 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
 
           <div className="lp-archive-grid">
             {visibleEntries.map((entry, index) => {
-              const isDelayed = entry.behavior === 'delayed' && !restored.has(entry.id);
-              const isRepairable = entry.behavior === 'repairable' && !repaired.has(entry.id);
+              const thumbnail = resolveThumbnail(entry);
+              const isDelayed = Boolean(thumbnail) && entry.behavior === 'delayed' && !restored.has(entry.id);
+              const isRepairable = Boolean(thumbnail) && entry.behavior === 'repairable' && !repaired.has(entry.id);
               const isLocked = entry.status === 'LOCKED';
               const external = entry.href?.startsWith('http');
+              const typeChip = <span className="lp-chip absolute left-0 top-0 z-[2] border-l-0 border-t-0">{entry.type}</span>;
+              const statusChip = (
+                <span className="lp-chip absolute right-0 top-0 z-[2] border-r-0 border-t-0" data-tone={statusTone(entry.status)}>
+                  {entry.status}
+                </span>
+              );
 
-              const media = (
+              const media = thumbnail ? (
                 <div className={`lp-media lp-media--scan relative aspect-[16/10] border-0 border-b border-[var(--lp-color-border-subtle)] ${isLocked || isDelayed ? 'lp-media--degraded' : ''} ${entry.behavior === 'broken-valid-link' ? 'lp-media--red' : ''}`}>
-                  <Image src={resolveThumbnail(entry, initialEntries.indexOf(entry))} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className={`object-cover ${isDelayed ? 'blur-[6px]' : ''} transition-[filter] duration-500`} />
+                  <Image src={thumbnail} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className={`object-cover ${isDelayed ? 'blur-[6px]' : ''} transition-[filter] duration-500`} />
                   {isRepairable ? (
                     <button
                       type="button"
@@ -274,16 +284,22 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
                         event.preventDefault();
                         setRestored((current) => new Set(current).add(entry.id));
                       }}
-                      onMouseEnter={() => window.setTimeout(() => setRestored((current) => new Set(current).add(entry.id)), 700)}
+                      onMouseEnter={() => startRestore(entry.id)}
+                      onMouseLeave={() => cancelRestore(entry.id)}
+                      onBlur={() => cancelRestore(entry.id)}
                       className="lp-label absolute inset-0 flex items-center justify-center bg-[rgba(5,5,5,0.5)] text-[var(--lp-color-text-strong)]"
                     >
                       SCANNING… TAP TO RESTORE
                     </button>
                   ) : null}
-                  <span className="lp-chip absolute left-0 top-0 z-[2] border-l-0 border-t-0">{entry.type}</span>
-                  <span className="lp-chip absolute right-0 top-0 z-[2] border-r-0 border-t-0" data-tone={statusTone(entry.status)}>
-                    {entry.status}
-                  </span>
+                  {repaired.has(entry.id) || restored.has(entry.id) ? <span className="lp-restored-stamp" role="status">FILE RESTORED</span> : null}
+                  {typeChip}
+                  {statusChip}
+                </div>
+              ) : (
+                <div className="relative h-[30px] border-b border-[var(--lp-color-border-subtle)]">
+                  {typeChip}
+                  {statusChip}
                 </div>
               );
 
@@ -367,8 +383,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
       </div>
 
       {teaser ? (
-        <div className="fixed inset-0 z-[var(--lp-z-overlay)] flex items-center justify-center bg-[rgba(0,0,0,0.84)] p-3 backdrop-blur-[3px]" onClick={() => setTeaser(null)} role="presentation">
-          <div onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Locked file">
+        <RetroDialog title="Locked file" onClose={() => setTeaser(null)}>
             <Panel ticks accent className="lp-reveal w-full max-w-[460px]">
               <PanelTitleBar title="LOCKED FILE" meta={teaser.type} />
               <div className="space-y-3 p-4">
@@ -380,8 +395,7 @@ export default function ArchivePageClient({ initialEntries = ARCHIVE_ENTRIES }: 
                 </button>
               </div>
             </Panel>
-          </div>
-        </div>
+        </RetroDialog>
       ) : null}
     </div>
   );

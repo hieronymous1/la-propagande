@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="lp-shell lp-page-pad space-y-4">
-      <PageHeader module="CONTACT.net" title="Secure uplink" strip="CHANNELS OPEN · RESPONSE WINDOW 24–72H · PARIS ↔ BEIRUT" />
+      <PageHeader module="CONTACT.net" title="Contact us" strip="CHANNELS OPEN · RESPONSE WINDOW 24–72H · PARIS ↔ BEIRUT" />
       <Image src="/images/client/connect-no-qr.webp" alt="Are you brainwashed yet? La Propagande — www.lapropagande.net, @_lapropagande and @lapropagande.psyops." width={994} height={1600} sizes="(max-width: 768px) 100vw, 640px" className="mx-auto h-auto w-full max-w-[640px]" />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -29,12 +29,12 @@ export default function ContactPage() {
         <Link href="/locations" className="group block lp-focus-ring">
           <Panel interactive reveal={1} className="h-full overflow-hidden">
             <PanelTitleBar title="ACCESS POINTS" meta="SHOWROOMS / SELLING POINTS" />
-            <div className="flex items-end justify-between gap-4 p-4">
+            <div className="flex flex-col items-start justify-between gap-4 p-4 sm:flex-row sm:items-end">
               <div>
                 <p className="lp-title lp-title-lg m-0 text-[var(--lp-color-text-strong)] transition-colors group-hover:text-[var(--lp-color-primary-300)]">Physical locations</p>
                 <p className="lp-body lp-body-sm m-0 mt-1 text-[var(--lp-color-text-muted)]">Addresses, hours, temporary activation windows.</p>
               </div>
-              <span className="lp-btn lp-btn--sm">
+              <span className="lp-btn lp-btn--sm shrink-0">
                 OPEN MAP <span className="lp-btn__arrow">&gt;</span>
               </span>
             </div>
