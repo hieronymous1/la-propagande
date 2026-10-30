@@ -150,12 +150,17 @@ test.describe('LA PROPAGANDE smoke', () => {
 
   test('empty live cart drawer opens and closes', async ({ page }) => {
     await page.goto('/products');
+    // React 19 treats inert="" as false: the closed drawer must carry a real inert attribute.
+    const drawer = page.locator('.lp-drawer');
+    await expect(drawer).toHaveAttribute('inert', '');
     await page.getByRole('button', { name: 'Open cart, 0 items' }).click();
     await expect(page.getByRole('dialog', { name: 'Cart' })).toBeVisible();
+    await expect(drawer).not.toHaveAttribute('inert');
     await expect(page.getByText('Buffer empty', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: /CHECKOUT/i })).toHaveCount(0);
     await page.getByRole('button', { name: 'Close cart' }).click();
     await expect(page.getByRole('dialog', { name: 'Cart' })).toBeHidden();
+    await expect(drawer).toHaveAttribute('inert', '');
   });
 
   test('archive remains command-line access only', async ({ page }) => {

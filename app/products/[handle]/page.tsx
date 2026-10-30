@@ -7,11 +7,12 @@ import { getProductCatalogMeta } from '@/lib/site';
 export const dynamic = 'force-dynamic';
 
 interface ProductPageProps {
-  params: { handle: string };
+  params: Promise<{ handle: string }>;
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const product = await getProductByHandle(params.handle);
+  const { handle } = await params;
+  const product = await getProductByHandle(handle);
   if (!product) return { title: 'Item not found' };
   const image = product.images.edges[0]?.node.url;
   const summary = (product.lpMeta?.shortDescription ?? product.lpMeta?.summary ?? product.description ?? '').slice(0, 160);
@@ -23,7 +24,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const [product, allProducts] = await Promise.all([getProductByHandle(params.handle), getProducts()]);
+  const { handle } = await params;
+  const [product, allProducts] = await Promise.all([getProductByHandle(handle), getProducts()]);
 
   if (!product) {
     notFound();

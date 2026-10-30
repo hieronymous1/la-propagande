@@ -10,11 +10,12 @@ import InstagramPost from '@/components/blog/InstagramPost';
 export const dynamic = 'force-dynamic';
 
 interface BlogPostPageProps {
-  params: { handle: string };
+  params: Promise<{ handle: string }>;
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const article = await getBlogPostByHandle('news', params.handle);
+  const { handle } = await params;
+  const article = await getBlogPostByHandle('news', handle);
   if (!article) return { title: 'Transmission not found' };
   return {
     title: article.title,
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const [article, allPosts] = await Promise.all([getBlogPostByHandle('news', params.handle), getBlogPosts('news')]);
+  const { handle } = await params;
+  const [article, allPosts] = await Promise.all([getBlogPostByHandle('news', handle), getBlogPosts('news')]);
 
   if (!article) {
     notFound();

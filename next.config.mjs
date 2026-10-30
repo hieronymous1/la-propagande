@@ -11,7 +11,7 @@ const isDev = process.env.NODE_ENV !== 'production';
  *   Shopify rich HTML can still embed <img> straight from the image hosts that
  *   images.remotePatterns allows below.
  * - Blog posts can embed an Instagram post/reel iframe (components/blog/InstagramPost.tsx).
- * - Next 14 App Router injects inline bootstrap scripts and inline styles, so
+ * - The Next App Router injects inline bootstrap scripts and inline styles, so
  *   'unsafe-inline' is needed until nonces are introduced; dev mode also needs eval.
  * - vercel.live is the Vercel preview toolbar (preview deployments only).
  */

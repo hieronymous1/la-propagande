@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
 
 interface EventsDetailRedirectProps {
-  params: {
+  params: Promise<{
     handle: string;
-  };
+  }>;
 }
 
-export default function EventsDetailRedirectPage({ params }: EventsDetailRedirectProps) {
-  redirect(`/blog/${params.handle}`);
+export default async function EventsDetailRedirectPage({ params }: EventsDetailRedirectProps) {
+  const { handle } = await params;
+  redirect(`/blog/${handle}`);
 }

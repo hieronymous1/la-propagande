@@ -19,7 +19,7 @@ A clothing label that behaves like an underground broadcast / cultural archive r
 Instagram link-in-bio traffic on mobile; physical showrooms (Badaro, Ashrafieh) and pop-ups (Afkart, Mzaar, Colonel Reef Batroun, Maddina Market); content managed in Shopify (products, articles, metaobjects).
 
 ## Capabilities and Constraints
-- Next.js 14 + Shopify Storefront; cart via Shopify; content from metafields/metaobjects with fallbacks.
+- Next.js 16 + Shopify Storefront; cart via Shopify; content from metafields/metaobjects with fallbacks.
 - Routes are fixed: /, /products, /products/[handle], /blog, /blog/[handle], /archive (hidden), /about, /contact, /locations, /custom-jackets, legal pages.
 - Archive must stay hidden from primary nav but discoverable (home index panel, `archive` command, shortcut).
 - Nothing deploys to lapropagande.net without the user's review and client approval.

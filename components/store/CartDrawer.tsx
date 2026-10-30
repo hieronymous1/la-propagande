@@ -55,7 +55,7 @@ export default function CartDrawer() {
     <>
       {isOpen ? <div className="lp-drawer-backdrop" onClick={closeCart} aria-hidden="true" /> : null}
 
-      <div ref={panelRef} className="lp-drawer" data-open={isOpen ? 'true' : 'false'} aria-label="Cart" role="dialog" aria-modal="true" aria-hidden={!isOpen} inert={isOpen ? undefined : ('' as unknown as boolean)}>
+      <div ref={panelRef} className="lp-drawer" data-open={isOpen ? 'true' : 'false'} aria-label="Cart" role="dialog" aria-modal="true" aria-hidden={!isOpen} inert={!isOpen}>
         <div className="lp-panel-title min-h-[var(--lp-topbar-h)]">
           <span className="lp-panel-title__name">CART · {String(count).padStart(2, '0')}</span>
           <button onClick={closeCart} className="lp-btn lp-btn--sm" aria-label="Close cart">

@@ -379,7 +379,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       ) : null}
 
       {/* mobile sticky buy bar */}
-      {COMMERCE_ENABLED ? <div className={`lp-dock md:hidden ${buyBarVisible ? 'translate-y-0' : 'pointer-events-none translate-y-full'} !bottom-[calc(var(--lp-dock-h)+env(safe-area-inset-bottom))] transition-transform duration-300 ease-lp`} aria-hidden={!buyBarVisible} inert={buyBarVisible ? undefined : ('' as unknown as boolean)}>
+      {COMMERCE_ENABLED ? <div className={`lp-dock md:hidden ${buyBarVisible ? 'translate-y-0' : 'pointer-events-none translate-y-full'} !bottom-[calc(var(--lp-dock-h)+env(safe-area-inset-bottom))] transition-transform duration-300 ease-lp`} aria-hidden={!buyBarVisible} inert={!buyBarVisible}>
         <div className="flex items-center gap-2">
           <span className="min-w-0 flex-1">
             <span className="lp-label block truncate text-[var(--lp-color-text-strong)]">{product.title}</span>
